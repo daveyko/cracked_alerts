@@ -59,37 +59,72 @@ async function throttledRequest(callback) {
     }
 }
 
-function detectTokenSwap(preTokenBalances, postTokenBalances, walletAddress, preBalances, postBalances) {
-    console.log('Debug - Raw preTokenBalances:', JSON.stringify(preTokenBalances, null, 2));
-    console.log('Debug - Raw postTokenBalances:', JSON.stringify(postTokenBalances, null, 2));
-    console.log('Debug - Native SOL balances:', {
-        pre: preBalances[0] / 1e9,
-        post: postBalances[0] / 1e9
-    });
-
+async function detectTokenSwap(preTokenBalances, postTokenBalances, walletAddress, preBalances, postBalances) {
     const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
     const preMap = new Map();
     const postMap = new Map();
+    let otherTokenMint = null;
 
     function populateMap(map, balances) {
         for (const balance of balances) {
             const { mint, owner, uiTokenAmount } = balance;
-            console.log('Debug - Processing balance:', {
-                mint,
-                owner,
-                amount: uiTokenAmount.uiAmount,
-                expectedWallet: walletAddress,
-                isMatch: owner === walletAddress
-            });
-
             if (owner === walletAddress) {
                 map.set(mint, uiTokenAmount.uiAmount);
+                // Identify non-USDC token
+                if (mint !== USDC_MINT) {
+                    otherTokenMint = mint;
+                }
             }
         }
     }
 
     populateMap(preMap, preTokenBalances);
     populateMap(postMap, postTokenBalances);
+
+    let tokenInfo = null;
+    // If we found a non-USDC token, fetch its metadata
+    if (otherTokenMint) {
+        try {
+            // Add a small delay before making the API call
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const response = await fetch('https://mainnet.helius-rpc.com/?api-key=' + process.env.HELIUS_API_KEY, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "jsonrpc": "2.0",
+                    "id": "test",
+                    "method": "getAsset",
+                    "params": {
+                        "id": otherTokenMint,
+                    }
+                }),
+            });
+            const data = await response.json();
+
+            // Add null checks before accessing properties
+            if (data && data.result) {
+                if (data.result.content && data.result.content.links) {
+                }
+                if (data.result.token_info && data.result.token_info.price_info) {
+                }
+            } else {
+                console.log('No token data found:', data);
+            }
+
+            if (data && data.result && data.result.token_info) {
+                tokenInfo = {
+                    symbol: data.result.token_info.symbol,
+                    price: data.result.token_info.price_info?.price_per_token || 0,
+                    decimals: data.result.token_info.decimals
+                };
+            }
+        } catch (error) {
+            console.error('Error fetching token metadata:', error);
+        }
+    }
 
     // Get USDC changes
     const preUSDC = preMap.get(USDC_MINT) || 0;
@@ -101,33 +136,36 @@ function detectTokenSwap(preTokenBalances, postTokenBalances, walletAddress, pre
     const postSOL = postBalances[0] / 1e9;
     const solChange = postSOL - preSOL;
 
-    console.log('Debug - Balance Changes:', {
-        USDC: {
-            pre: preUSDC,
-            post: postUSDC,
-            change: usdcChange
-        },
-        SOL: {
-            pre: preSOL,
-            post: postSOL,
-            change: solChange
-        }
-    });
+    // Calculate other token changes
+    const preToken = preMap.get(otherTokenMint) || 0;
+    const postToken = postMap.get(otherTokenMint) || 0;
+    const tokenChange = postToken - preToken;
 
-    if (Math.abs(usdcChange) > 0 || Math.abs(solChange) > 0) {
-        return {
-            USDC: {
+        const result = {};
+        
+        if (Math.abs(usdcChange) > 0) {
+            result.USDC = {
                 amount: usdcChange,
                 type: usdcChange > 0 ? 'Received' : 'Spent'
-            },
-            SOL: {
+            };
+        }
+        
+        if (Math.abs(solChange) > 0) {
+            result.SOL = {
                 amount: solChange,
                 type: solChange > 0 ? 'Received' : 'Spent'
-            }
-        };
-    }
-
-    return null;
+            };
+        }
+        
+        if (tokenChange !== 0) {
+            result.TOKEN = {
+                amount: tokenChange,
+                type: tokenChange > 0 ? 'Received' : 'Spent',
+                info: tokenInfo
+            };
+        }
+    
+    return result;
 }
 
 // Handle WebSocket connections
@@ -195,10 +233,7 @@ wss.on("connection", (ws) => {
                     const preTokenBalances = transaction.meta.preTokenBalances;
                     const postTokenBalances = transaction.meta.postTokenBalances;
 
-                    console.log('preTokenBalances', preTokenBalances);
-                    console.log('postTokenBalances', postTokenBalances);
-
-                    const swapResult = detectTokenSwap(
+                    const swapResult = await detectTokenSwap(
                         preTokenBalances,
                         postTokenBalances,
                         address,
@@ -208,9 +243,10 @@ wss.on("connection", (ws) => {
 
                     // Only send message if changes are above minimum thresholds
                     if (swapResult && (
-                        (Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) ||
-                        (Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE)
+                        (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) ||
+                        (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE)
                     )) {
+                        console.log('swapResult', swapResult);
                         try {
                             const message = formatSwapMessage(swapResult, signature);
                             await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML' });
@@ -247,28 +283,43 @@ wss.on("connection", (ws) => {
 
 // Add this helper function at the bottom of the file
 function formatSwapMessage(swapResult, signature) {
-    const { USDC, SOL } = swapResult;
-    const usdcAmount = Math.abs(USDC.amount).toFixed(2);
-    const solAmount = Math.abs(SOL.amount).toFixed(4);
+    const { USDC, SOL, TOKEN } = swapResult;
+    // Only calculate amounts if USDC/SOL exists
+    const usdcAmount = USDC ? Math.abs(USDC.amount).toFixed(2) : '0';
+    const solAmount = SOL ? Math.abs(SOL.amount).toFixed(4) : '0';
 
-    let message = '💰 <b>Transaction Detected</b>\n\n';
+    let message = '🔄 <b>Swap Detected</b>\n\n';
 
+    // Handle token swaps
+    if (TOKEN && TOKEN.info) {
+        const tokenAmount = Math.abs(TOKEN.amount).toFixed(2);
+        const tokenValue = (Math.abs(TOKEN.amount) * TOKEN.info.price).toFixed(2);
+        const tokenSymbol = TOKEN.info.symbol;
+
+        if (USDC && USDC.amount !== 0) {
+            if (TOKEN.type === 'Received') {
+                message += `Swapped 💵 ${usdcAmount} USDC for ${tokenAmount} ${tokenSymbol}\n`;
+                message += `Token Price: $${TOKEN.info.price.toFixed(4)} (Total: $${tokenValue})`;
+            } else {
+                message += `Swapped ${tokenAmount} ${tokenSymbol} for 💵 ${usdcAmount} USDC\n`;
+                message += `Token Price: $${TOKEN.info.price.toFixed(4)} (Total: $${tokenValue})`;
+            }
+        } else if (SOL && SOL.amount !== 0) {
+            if (TOKEN.type === 'Received') {
+                message += `Swapped ◎${solAmount} SOL for ${tokenAmount} ${tokenSymbol}\n`;
+                message += `Token Price: $${TOKEN.info.price.toFixed(4)} (Total: $${tokenValue})`;
+            } else {
+                message += `Swapped ${tokenAmount} ${tokenSymbol} for ◎${solAmount} SOL\n`;
+                message += `Token Price: $${TOKEN.info.price.toFixed(4)} (Total: $${tokenValue})`;
+            }
+        }
+    }
     // Handle USDC/SOL swaps
-    if (USDC.amount !== 0 && SOL.amount !== 0) {
-        message = '🔄 <b>Swap Detected</b>\n\n';
+    else if (USDC && SOL && USDC.amount !== 0 && SOL.amount !== 0) {
         if (USDC.type === 'Spent' && SOL.type === 'Received') {
             message += `Swapped 💵 ${usdcAmount} USDC for ◎${solAmount} SOL`;
         } else if (SOL.type === 'Spent' && USDC.type === 'Received') {
             message += `Swapped ◎${solAmount} SOL for 💵 ${usdcAmount} USDC`;
-        }
-    }
-    // Handle single token changes
-    else {
-        if (USDC.amount !== 0) {
-            message += `${USDC.type} 💵 ${usdcAmount} USDC`;
-        }
-        if (SOL.amount !== 0) {
-            message += `${SOL.type} ◎${solAmount} SOL`;
         }
     }
 
