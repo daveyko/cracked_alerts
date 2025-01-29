@@ -47,6 +47,8 @@ module.exports = async function detectTokenSwap(preTokenBalances, postTokenBalan
                         decimals: data.result.token_info.decimals
                     });
                 }
+
+                // Get dev account and filter for the token and show how much % supply they have
             } catch (error) {
                 console.error(`Error fetching token metadata for ${mint}:`, error);
             }

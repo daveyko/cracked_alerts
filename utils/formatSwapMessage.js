@@ -6,8 +6,7 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
     const { USDC, SOL, ...otherTokens } = swapResult;
     const walletName = WALLET_NAMES[walletAddress] || walletAddress.slice(0, 4) + '...';
 
-    let message = `🔄 <b>Cracked Swap Detected</b>\n👤 <b>${walletName} 🔄</b>\n\n`;
-
+    let message = '';
     const spentTokens = [];
     const receivedTokens = [];
 
@@ -50,12 +49,21 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
         const spentToken = spentTokens[0];
         const receivedToken = receivedTokens[0];
 
+        // Determine which token to show in title (non-SOL/USDC token)
+        const titleToken = [spentToken, receivedToken].find(token =>
+            token.symbol !== 'SOL' && token.symbol !== 'USDC'
+        ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
+
+        message += `🔄 <b>Cracked Swap Detected for ${titleToken.symbol}</b>\n\n\n`;
+        message += `👤 <b>${walletName}</b> 🔄\n\n`;
+
         const spentAmount = Math.abs(spentToken.amount).toFixed(
             spentToken.symbol === 'SOL' ? 4 : 2
         );
         const receivedAmount = Math.abs(receivedToken.amount).toFixed(
             receivedToken.symbol === 'SOL' ? 4 : 2
         );
+
 
         const spentSymbol = spentToken.symbol === 'SOL' ? '◎' :
             spentToken.symbol === 'USDC' ? '💵' : '';
@@ -73,7 +81,7 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
         // Add token address for the received token if it's not SOL or USDC
         console.log('receivedToken', receivedToken);
         if (receivedToken.symbol !== 'SOL' && receivedToken.symbol !== 'USDC') {
-            message += `\n\n📝 Token Address: <code>${receivedToken.address}</code>`;
+            message += `\n\n📝 ${receivedToken.symbol}: <code>${receivedToken.address}</code>`;
         }
     }
 

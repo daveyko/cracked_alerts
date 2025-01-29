@@ -97,20 +97,31 @@ const subscribeToWallet = async (address) => {
                     transaction.meta.postBalances
                 );
 
-                // Only send message if changes are above minimum thresholds
-                if (swapResult && (
-                    (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) ||
-                    (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE)
-                )) {
-                    console.log('swapResult', swapResult);
-                    try {
-                        const message = formatSwapMessage(swapResult, signature, address);
-                        await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML' });
-                    } catch (error) {
-                        console.error('Error sending Telegram message:', error);
+                // Count spent and received tokens
+                const spentTokens = Object.values(swapResult).filter(token => token.type === 'Spent');
+                const receivedTokens = Object.values(swapResult).filter(token => token.type === 'Received');
+
+                // Only proceed if we have both spent and received tokens
+                if (spentTokens.length > 0 && receivedTokens.length > 0) {
+                    // Check minimum thresholds
+                    const meetsThreshold = (
+                        (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) ||
+                        (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE)
+                    );
+
+                    if (meetsThreshold) {
+                        console.log('swapResult', swapResult);
+                        try {
+                            const message = formatSwapMessage(swapResult, signature, address);
+                            await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML' });
+                        } catch (error) {
+                            console.error('Error sending Telegram message:', error);
+                        }
+                    } else {
+                        console.log('Transaction below threshold, skipping notification');
                     }
                 } else {
-                    console.log('Transaction below $10 threshold, skipping notification');
+                    console.log('Not a swap transaction (no spent or received tokens pair found)');
                 }
             } catch (error) {
                 console.error('Error in subscription handler:', error);
@@ -133,7 +144,7 @@ const initializeWalletSubscriptions = async () => {
     }
     console.log(`Initialized subscriptions for ${WALLET_ADDRESSES.length} wallets`);
     try {
-        const message = `🚀 Bot is online!\n\n👛 Monitoring ${WALLET_ADDRESSES.length} wallets`;
+        const message = `💉 CRACKED ALERTS IS ONLINE!\n🔍 Monitoring ${WALLET_ADDRESSES.length} wallets 🔎`;
         await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message);
     } catch (error) {
         console.error('Error sending Telegram connection message:', error);
