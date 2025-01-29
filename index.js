@@ -7,45 +7,38 @@ const TelegramBot = require('node-telegram-bot-api');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Create an Express HTTP server
 const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-// Create a WebSocket server
 const wss = new WebSocketServer({ server });
-
-// Connect to Solana RPC
 const connection = new Connection(process.env.SOLANA_RPC_URL || clusterApiUrl("mainnet-beta"), "confirmed");
 
-// Store active subscriptions
 const subscriptions = new Map();
 
-// create map for tokens (usdc,)
+// create map for tokens (usdc, sol)
 
-// Update rate limiting configuration
-const RATE_LIMIT_DELAY = 2000; // Increase to 2 seconds between requests
+// Rate limit configuration
+const RATE_LIMIT_DELAY = 2000;
 const MAX_RETRIES = 5;
 const INITIAL_BACKOFF = 1000;
 let lastRequestTime = 0;
 
-// Add new constants at the top with other configurations
+// Transaction handling configuration
 const TRANSACTION_NOT_FOUND_RETRIES = 3;
-const TRANSACTION_NOT_FOUND_DELAY = 1000; // 1 second
-const MINIMUM_USDC_CHANGE = 10.0; // Minimum $10 USDC change
-const MINIMUM_SOL_CHANGE = 0.1; // Assuming SOL is ~$100, this would be ~$10 worth
-const recentTransactions = new Set(); // Track recent transaction signatures
+const TRANSACTION_NOT_FOUND_DELAY = 1000;
+const MINIMUM_USDC_CHANGE = 10.0;
+const MINIMUM_SOL_CHANGE = 0.2;
+const recentTransactions = new Set();
 
-// Initialize Telegram bot
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
 
 // Enhanced throttled request with exponential backoff
 async function throttledRequest(callback) {
     const now = Date.now();
     const timeToWait = Math.max(0, RATE_LIMIT_DELAY - (now - lastRequestTime));
-    
+
     if (timeToWait > 0) {
         await new Promise(resolve => setTimeout(resolve, timeToWait));
     }
-    
+
     lastRequestTime = Date.now();
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -55,7 +48,7 @@ async function throttledRequest(callback) {
             if (error.message.includes('429')) {
                 const backoffTime = INITIAL_BACKOFF * Math.pow(2, attempt);
                 console.log(`Rate limit hit, retrying in ${backoffTime}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
-                
+
                 if (attempt < MAX_RETRIES - 1) {
                     await new Promise(resolve => setTimeout(resolve, backoffTime));
                     continue;
@@ -78,7 +71,6 @@ function detectTokenSwap(preTokenBalances, postTokenBalances, walletAddress, pre
     const preMap = new Map();
     const postMap = new Map();
 
-    // Helper function to populate balance maps
     function populateMap(map, balances) {
         for (const balance of balances) {
             const { mint, owner, uiTokenAmount } = balance;
@@ -89,7 +81,7 @@ function detectTokenSwap(preTokenBalances, postTokenBalances, walletAddress, pre
                 expectedWallet: walletAddress,
                 isMatch: owner === walletAddress
             });
-            
+
             if (owner === walletAddress) {
                 map.set(mint, uiTokenAmount.uiAmount);
             }
@@ -156,21 +148,21 @@ wss.on("connection", (ws) => {
                 try {
                     console.log(`New transaction detected for ${address}`);
                     const signature = logInfo.signature;
-                    
+
                     let transaction;
                     for (let i = 0; i < TRANSACTION_NOT_FOUND_RETRIES; i++) {
                         try {
-                            transaction = await throttledRequest(() => 
+                            transaction = await throttledRequest(() =>
                                 connection.getTransaction(signature, {
                                     commitment: 'confirmed',
                                     maxSupportedTransactionVersion: 0
                                 })
                             );
-                            
+
                             if (transaction) {
                                 break;
                             }
-                            
+
                             console.log(`Transaction not found, attempt ${i + 1}/${TRANSACTION_NOT_FOUND_RETRIES}. Waiting ${TRANSACTION_NOT_FOUND_DELAY}ms...`);
                             await new Promise(resolve => setTimeout(resolve, TRANSACTION_NOT_FOUND_DELAY));
                         } catch (error) {
@@ -194,7 +186,7 @@ wss.on("connection", (ws) => {
 
                     // Add to recent transactions
                     recentTransactions.add(signature);
-                    
+
                     // Clean up old transactions after 1 minute
                     setTimeout(() => {
                         recentTransactions.delete(signature);
@@ -207,8 +199,8 @@ wss.on("connection", (ws) => {
                     console.log('postTokenBalances', postTokenBalances);
 
                     const swapResult = detectTokenSwap(
-                        preTokenBalances, 
-                        postTokenBalances, 
+                        preTokenBalances,
+                        postTokenBalances,
                         address,
                         transaction.meta.preBalances,
                         transaction.meta.postBalances
@@ -216,7 +208,7 @@ wss.on("connection", (ws) => {
 
                     // Only send message if changes are above minimum thresholds
                     if (swapResult && (
-                        (Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) || 
+                        (Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) ||
                         (Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE)
                     )) {
                         try {
@@ -258,9 +250,9 @@ function formatSwapMessage(swapResult, signature) {
     const { USDC, SOL } = swapResult;
     const usdcAmount = Math.abs(USDC.amount).toFixed(2);
     const solAmount = Math.abs(SOL.amount).toFixed(4);
-    
+
     let message = '💰 <b>Transaction Detected</b>\n\n';
-    
+
     // Handle USDC/SOL swaps
     if (USDC.amount !== 0 && SOL.amount !== 0) {
         message = '🔄 <b>Swap Detected</b>\n\n';
@@ -269,7 +261,7 @@ function formatSwapMessage(swapResult, signature) {
         } else if (SOL.type === 'Spent' && USDC.type === 'Received') {
             message += `Swapped ◎${solAmount} SOL for 💵 ${usdcAmount} USDC`;
         }
-    } 
+    }
     // Handle single token changes
     else {
         if (USDC.amount !== 0) {
@@ -279,9 +271,9 @@ function formatSwapMessage(swapResult, signature) {
             message += `${SOL.type} ◎${solAmount} SOL`;
         }
     }
-    
+
     message += `\n\n🔗 <a href="https://solscan.io/tx/${signature}">View Transaction</a>`;
-    
+
     return message;
 }
 
