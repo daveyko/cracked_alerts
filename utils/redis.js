@@ -11,28 +11,23 @@ export const connectRedis = async () => {
 // Write new transaction to Redis (Initially unprocessed)
 
 /*
-    type VersionedTransactionResponse = {
-        The slot during which the transaction was processed
-        slot: number;
-        The transaction 
-        transaction: {
-            The transaction message 
-            message: VersionedMessage;
-            The transaction signatures 
-            signatures: string[];
-        };
-        Metadata produced from the transaction 
-        meta: ConfirmedTransactionMeta | null;
-        The unix timestamp of when the transaction was processed 
-        blockTime?: number | null;
-        The transaction version 
-        version?: TransactionVersion;
+    altTokenCA,
+    altTokenName,
+    altTokenMarketCap,
+    altTokenPrice,
+    boughtAmount: receivedAmount,
+    boughtToken: receivedSymbol,
+    soldAmount: spentAmount,
+    soldToken: spentSymbol,
+    transactionId,
+    transactionType,
+    walletName,
     }
 */
 export async function addTransaction(transaction) {
     await connectRedis();
-    const { slot } = transaction; // Unique key
-    await redisClient.hSet('transactions', slot, JSON.stringify(transaction));
+    const { transactionId } = transaction; // Unique key
+    await redisClient.hSet('transactions', transactionId, JSON.stringify(transaction));
 }
 
 export async function getAllTransactions() {

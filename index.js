@@ -7,6 +7,7 @@ const formatSwapMessage = require('./utils/formatSwapMessage');
 const throttledRequest = require('./utils/throttleRequest');
 const { WALLET_ADDRESSES } = require('./constants/walletAddresses');
 const detectTokenSwap = require('./utils/detectTokenSwap');
+const { addTransaction } = require('./utils/transaction')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -116,6 +117,7 @@ const subscribeToWallet = async (address) => {
                         } catch (error) {
                             console.error('Error sending Telegram message:', error);
                         }
+                        addTransaction(swapResult, transaction.slot, address);
                     } else {
                         console.log('Transaction below threshold, skipping notification');
                     }
