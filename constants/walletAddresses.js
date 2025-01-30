@@ -9,6 +9,7 @@ const WALLET_ADDRESSES = [
     'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL', // Frank
     'suqh5sHtr8HyJ7q8scBimULPkPpA557prMG47xCHQfK', // Cupsey
     '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6', // Cooker
+    'Hp2JBrAhny1TDaC4YhHJLB5jBmcfVXB3A2GTUZzPkQaD', // Nikita
 ];
 
 const WALLET_NAMES = {
@@ -22,6 +23,7 @@ const WALLET_NAMES = {
     'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL': 'FrankDeGods', // Frank
     'suqh5sHtr8HyJ7q8scBimULPkPpA557prMG47xCHQfK': 'Cupsey', // Cupsey
     '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6': 'Cooker', // Cooker
+    'Hp2JBrAhny1TDaC4YhHJLB5jBmcfVXB3A2GTUZzPkQaD': 'Nikita', // Nikita
 };
 
 module.exports = {
