@@ -112,7 +112,7 @@ const subscribeToWallet = async (address) => {
                         console.log('swapResult', swapResult);
                         try {
                             const message = formatSwapMessage(swapResult, signature, address);
-                            await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML' });
+                            await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
                         } catch (error) {
                             console.error('Error sending Telegram message:', error);
                         }

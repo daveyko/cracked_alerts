@@ -54,22 +54,24 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
             token.symbol !== 'SOL' && token.symbol !== 'USDC'
         ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
 
+        console.log('titleToken', titleToken);
 
-        message += `<b>Cracked Swap Detected for ${titleToken.symbol}</b>
+        message += `<b>Cracked Swap Detected for: $${titleToken.symbol}</b>
         
 <b>Token Information</b>
 Name: ${titleToken.info?.name || 'Unknown'}
-Symbol: ${titleToken.info?.symbol || 'Unknown'}
-Socials: ${titleToken.info?.socials?.map(social =>
+Socials: ${!!titleToken.info?.socials ? titleToken.info?.socials?.map(social =>
             `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
-        ).join(' | ') || 'None'}
+        ).join(' | ') : 'None'}
 CA: <code>${titleToken.info?.address || titleToken.address}</code>
 Market Cap: $${formatMarketCap(titleToken.info?.marketcap || 0)}
-Price: $${(titleToken.info?.price).toLocaleString()}
+Price: $${(titleToken.info?.price)?.toLocaleString()}
 5 min txns (buy / sell): ${titleToken.info?.['5mtxn']?.buys || 0} / ${titleToken.info?.['5mtxn']?.sells || 0}
 
 Security Information
 Token Age: ${titleToken.info?.pairCreatedAt ? Math.floor((Date.now() - titleToken.info.pairCreatedAt) / (1000 * 60)) : 'Unknown'}m
+
+--------------------------------------------------------------------
 
 `
 
@@ -101,6 +103,11 @@ Token Age: ${titleToken.info?.pairCreatedAt ? Math.floor((Date.now() - titleToke
             const totalValue = (Math.abs(receivedToken.amount) * receivedToken.info.price).toFixed(2);
             message += `\nToken Price: $${receivedToken.info.price.toFixed(4)} (Total: $${totalValue})`;
         }
+
+        // Quick Links:
+        message += `\n<b>Quick Links:</b>\n`
+        message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${titleToken.info?.address || titleToken.address}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${titleToken.info?.address || titleToken.address}?handle=66478257f2babf7339037">Photon</a>`
+        message += `\n<b>🔍 Explorer:</b> <a href="https://solscan.io/tx/${signature}">View Transaction</a>`
     }
 
     return message;
