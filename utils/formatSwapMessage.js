@@ -54,7 +54,30 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
             token.symbol !== 'SOL' && token.symbol !== 'USDC'
         ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
 
-        message += `🔄 <b>Cracked Swap Detected for ${titleToken.symbol}</b>\n\n\n`;
+
+        message += `<b>Cracked Swap Detected for ${titleToken.symbol}</b>
+        
+<b>Token Information</b>
+Name: ${titleToken.info.name}
+Socials: Website | Twitter | Telegram
+CA: <code>${titleToken.info.address}</code>
+Market Cap: $${formatMarketCap(titleToken.info.marketcap)}
+Price: $${titleToken.info.price.toLocaleString()}
+5 min txns (buy / sell): ${titleToken.info['5mtxn'].buys} / ${titleToken.info['5mtxn'].sells}
+
+Security Information
+Token Age: ${Math.floor((Date.now() - titleToken.info.pairCreatedAt) / (1000 * 60))}m
+
+
+
+`
+
+        // Security Information
+        // Dev: 74BX...1kMC
+        // Dev Balance: 0.00 tokens
+
+        // Total SOL Spent: 98.70 SOL
+
         message += `👤 <b>${walletName}</b> 🔄\n\n`;
 
         const spentAmount = Math.abs(spentToken.amount).toFixed(
@@ -77,16 +100,21 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
             const totalValue = (Math.abs(receivedToken.amount) * receivedToken.info.price).toFixed(2);
             message += `\nToken Price: $${receivedToken.info.price.toFixed(4)} (Total: $${totalValue})`;
         }
-
-        // Add token address for the received token if it's not SOL or USDC
-        console.log('receivedToken', receivedToken);
-        if (receivedToken.symbol !== 'SOL' && receivedToken.symbol !== 'USDC') {
-            message += `\n\n📝 ${receivedToken.symbol}: <code>${receivedToken.address}</code>`;
-        }
     }
 
-    message += `\n\n🔗 <a href="https://solscan.io/tx/${signature}">View Transaction</a>`;
+    message += `\n\n🔗 <a href="https://solscan.io/tx/${signature}">‎</a>View Transaction`;
 
     return message;
+}
+
+function formatMarketCap(value) {
+    if (value >= 1e9) {
+        return (value / 1e9).toFixed(2) + 'B';
+    } else if (value >= 1e6) {
+        return (value / 1e6).toFixed(2) + 'M';
+    } else if (value >= 1e3) {
+        return (value / 1e3).toFixed(2) + 'K';
+    }
+    return value.toFixed(2);
 }
 

@@ -28,8 +28,8 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
 // Transaction handling configuration
 const TRANSACTION_NOT_FOUND_RETRIES = 3;
 const TRANSACTION_NOT_FOUND_DELAY = 1000;
-const MINIMUM_USDC_CHANGE = 10.0;
-const MINIMUM_SOL_CHANGE = 0.2;
+const MINIMUM_USDC_CHANGE = 2.0;
+const MINIMUM_SOL_CHANGE = 0.02;
 const recentTransactions = new Set();
 
 // Add this function to handle wallet subscription
