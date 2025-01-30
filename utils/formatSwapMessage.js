@@ -58,17 +58,18 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
         message += `<b>Cracked Swap Detected for ${titleToken.symbol}</b>
         
 <b>Token Information</b>
-Name: ${titleToken.info.name}
-Socials: Website | Twitter | Telegram
-CA: <code>${titleToken.info.address}</code>
-Market Cap: $${formatMarketCap(titleToken.info.marketcap)}
-Price: $${titleToken.info.price.toLocaleString()}
-5 min txns (buy / sell): ${titleToken.info['5mtxn'].buys} / ${titleToken.info['5mtxn'].sells}
+Name: ${titleToken.info?.name || 'Unknown'}
+Symbol: ${titleToken.info?.symbol || 'Unknown'}
+Socials: ${titleToken.info?.socials?.map(social =>
+            `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
+        ).join(' | ') || 'None'}
+CA: <code>${titleToken.info?.address || titleToken.address}</code>
+Market Cap: $${formatMarketCap(titleToken.info?.marketcap || 0)}
+Price: $${(titleToken.info?.price).toLocaleString()}
+5 min txns (buy / sell): ${titleToken.info?.['5mtxn']?.buys || 0} / ${titleToken.info?.['5mtxn']?.sells || 0}
 
 Security Information
-Token Age: ${Math.floor((Date.now() - titleToken.info.pairCreatedAt) / (1000 * 60))}m
-
-
+Token Age: ${titleToken.info?.pairCreatedAt ? Math.floor((Date.now() - titleToken.info.pairCreatedAt) / (1000 * 60)) : 'Unknown'}m
 
 `
 
@@ -78,7 +79,7 @@ Token Age: ${Math.floor((Date.now() - titleToken.info.pairCreatedAt) / (1000 * 6
 
         // Total SOL Spent: 98.70 SOL
 
-        message += `👤 <b>${walletName}</b> 🔄\n\n`;
+        message += `👤 <b>${walletName}</b>\n\n`;
 
         const spentAmount = Math.abs(spentToken.amount).toFixed(
             spentToken.symbol === 'SOL' ? 4 : 2
@@ -101,8 +102,6 @@ Token Age: ${Math.floor((Date.now() - titleToken.info.pairCreatedAt) / (1000 * 6
             message += `\nToken Price: $${receivedToken.info.price.toFixed(4)} (Total: $${totalValue})`;
         }
     }
-
-    message += `\n\n🔗 <a href="https://solscan.io/tx/${signature}">‎</a>View Transaction`;
 
     return message;
 }

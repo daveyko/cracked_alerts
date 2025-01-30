@@ -34,7 +34,6 @@ const recentTransactions = new Set();
 
 // Add this function to handle wallet subscription
 const subscribeToWallet = async (address) => {
-    console.log(`Subscribing to wallet: ${address}`);
     try {
         const publicKey = new PublicKey(address);
 

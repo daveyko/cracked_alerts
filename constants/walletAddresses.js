@@ -5,6 +5,10 @@ const WALLET_ADDRESSES = [
     'nPosUpnDtaB4dBaJUMF1bm78E4BTZDwWQWGoEmEyESx', // trippy (smart investor)
     '9M1ms3bM9Rm975LkWRsYjrHZowfk7PpVUcy4Fia6Gs8g', // fluc (frontrunner),
     '8zFZHuSRuDpuAR7J6FzwyF3vKNx4CVW3DFHJerQhc7Zd', // POW (KOL aper)
+    'CKXzCmgNgQGonGvx9gpaHV9RXg1fHrMkQWmyzFuy4Cbv', // pnut insider
+    'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL', // Frank
+    'suqh5sHtr8HyJ7q8scBimULPkPpA557prMG47xCHQfK', // Cupsey
+    '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6', // Cooker
 ];
 
 const WALLET_NAMES = {
@@ -14,6 +18,10 @@ const WALLET_NAMES = {
     'nPosUpnDtaB4dBaJUMF1bm78E4BTZDwWQWGoEmEyESx': 'Trippy', // Trippy (smart investor)
     '9M1ms3bM9Rm975LkWRsYjrHZowfk7PpVUcy4Fia6Gs8g': 'Fluc', // Fluc (frontrunner)
     '8zFZHuSRuDpuAR7J6FzwyF3vKNx4CVW3DFHJerQhc7Zd': 'POW', // POW (KOL aper)
+    'CKXzCmgNgQGonGvx9gpaHV9RXg1fHrMkQWmyzFuy4Cbv': 'Pnut Insider', // Pnut Insider
+    'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL': 'FrankDeGods', // Frank
+    'suqh5sHtr8HyJ7q8scBimULPkPpA557prMG47xCHQfK': 'Cupsey', // Cupsey
+    '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6': 'Cooker', // Cooker
 };
 
 module.exports = {
