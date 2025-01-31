@@ -1,4 +1,5 @@
 const WALLET_ADDRESSES = [
+    '8wnJFnQnh9MVQxqPinb6Vypgw8HrpFmiXAHimqzWCEGs', // David (test)
     '3h65MmPZksoKKyEpEjnWU2Yk2iYT5oZDNitGy5cTaxoE', // JID (pumpfun aper)
     'GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt', // y22 (100k to 1mil)
     'nPosUpnDtaB4dBaJUMF1bm78E4BTZDwWQWGoEmEyESx', // trippy (smart investor)
@@ -21,6 +22,7 @@ const WALLET_ADDRESSES = [
 ];
 
 const WALLET_NAMES = {
+    '8wnJFnQnh9MVQxqPinb6Vypgw8HrpFmiXAHimqzWCEGs': "David", // David (test)
     '3h65MmPZksoKKyEpEjnWU2Yk2iYT5oZDNitGy5cTaxoE': 'JID (pumpfun aper)', // JID (pumpfun aper)
     'GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt': 'Y22 (500k to 5mil challenge)', // Y22 (100k to 1mil)
     'nPosUpnDtaB4dBaJUMF1bm78E4BTZDwWQWGoEmEyESx': 'Trippy (smart/eng investor)', // Trippy (smart investor)

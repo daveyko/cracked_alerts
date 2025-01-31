@@ -1,3 +1,4 @@
+const cache = require('./memory');
 const { aggregateTransactions } = require('./transactionAgg')
 const { formatAggMessage } = require('./formatAggMessage')
 const { bot } = require('./tgbot')

@@ -41,7 +41,6 @@ const subscribeToWallet = async (address) => {
 
         const subscriptionId = connection.onLogs(publicKey, async (logInfo) => {
             try {
-                console.log(`New transaction detected for ${address}`);
                 const signature = logInfo.signature;
 
                 let transaction;
@@ -111,6 +110,7 @@ const subscribeToWallet = async (address) => {
                     );                 
                     const parsedTransaction = getTransaction(swapResult, address, transaction.blockTime)
                     if (meetsThresholdMultiWalletAction && parsedTransaction !== null) {
+                        console.log(`New ${parsedTransaction.transactionType} transaction detected for wallet: ${address} and token: ${parsedTransaction.altTokenCA}`);
                         multiWalletAlert(parsedTransaction);
                     }
                     const meetsThresholdTransactionAction = (
