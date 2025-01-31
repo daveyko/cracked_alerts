@@ -1,7 +1,7 @@
 const { formatCompactNumber } = require('./format')
 
-function formatAggMessage(data) {
-    let message = `<b>Net Recent Trades (last 15 min):</b>\n`;
+function formatAggMessage(data, message) {
+    let message = `<b>${message}:</b>\n`;
     data.forEach(wallet => {
         const totalTransactionCount = wallet.summaries.reduce((tokenSum, summary) => tokenSum + summary.buySummary.count + summary.sellSummary.count, 0)
         message += `\n👤 <b>${wallet.walletName}</b>\n`;

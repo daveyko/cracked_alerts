@@ -1,8 +1,7 @@
-const cache = require('./memory');
 const { WALLET_NAMES } = require('../constants/walletAddresses')
 const GAS_FEE_THRESHOLD = 0.01; // Ignore SOL changes below this amount when other tokens are present
 
-function getTransaction(swapResult, walletAddress) {
+function getTransaction(swapResult, walletAddress, blockTime) {
     const { USDC, SOL, ...otherTokens } = swapResult;
     const walletName = WALLET_NAMES[walletAddress] || walletAddress.slice(0, 4) + '...';
     const spentTokens = [];
@@ -64,6 +63,7 @@ function getTransaction(swapResult, walletAddress) {
             altTokenSymbol: titleToken.symbol,
             altTokenMarketCap,
             altTokenPrice,
+            blockTime: blockTime ??  Date().now(),
             boughtAmount: receivedAmount,
             boughtToken: receivedToken.symbol,
             soldAmount: spentAmount,
@@ -75,10 +75,6 @@ function getTransaction(swapResult, walletAddress) {
     return null;
 }
 
-function addTransaction(swapResult, transactionId, walletAddress) {
-    cache.set(transactionId, getTransaction(swapResult, walletAddress))    
-}
-
 module.exports = { 
-    addTransaction
+    getTransaction
 }
