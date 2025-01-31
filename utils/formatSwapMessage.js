@@ -54,9 +54,6 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
         const titleToken = [spentToken, receivedToken].find(token =>
             token.symbol !== 'SOL' && token.symbol !== 'USDC'
         ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
-
-        console.log('titleToken', titleToken);
-
         message += `<b>Cracked Swap Detected for: $${titleToken.symbol}</b>
         
 <b>Token Information</b>

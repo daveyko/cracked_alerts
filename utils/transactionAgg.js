@@ -18,60 +18,87 @@
 */
 
 function aggregateTransactions(transactions) {
-    // Group by walletName
-    const groupedByWallet = transactions.reduce((acc, tx) => {
-        if (!acc[tx.walletName]) {
-            acc[tx.walletName] = {};
+    const groupedData = {};
+
+    transactions.forEach(tx => {
+        const { 
+            walletName, 
+            altTokenCA, 
+            altTokenSymbol, 
+            altTokenMarketCap, 
+            boughtAmount, 
+            boughtToken, 
+            soldAmount, 
+            soldToken, 
+            transactionType 
+        } = tx;
+
+
+        // Ensure wallet entry exists
+        if (!groupedData[walletName]) {
+            groupedData[walletName] = {};
         }
 
-        const tokenGroup = acc[tx.walletName];
-
-        // Group by altTokenCA
-        if (!tokenGroup[tx.altTokenCA]) {
-            tokenGroup[tx.altTokenCA] = {
-                altTokenCA: tx.altTokenCA,
-                altTokenName: tx.altTokenSymbol,
-                totalAltBought: 0,
-                totalAltSold: 0,
-                totalNonAltSpent: 0, // Amount of SOL/USDC spent or received
-                nonAltTokenName: tx.soldToken === tx.altTokenSymbol ? tx.boughtToken : tx.soldToken,
-                weightedMarketCapSum: 0,
-                weightedMarketCapCount: 0,
-                avgMarketCap: 0
+        // Ensure altToken entry exists under wallet
+        if (!groupedData[walletName][altTokenCA]) {
+            groupedData[walletName][altTokenCA] = {
+                altTokenCA,
+                altTokenSymbol,
+                buys: { totalAltAmount: 0, totalSpent: 0, weightedMarketCapSum: 0, weightedMarketCapAmount: 0, currency: "" , count: 0},
+                sells: { totalAltAmount: 0, totalReceived: 0, weightedMarketCapSum: 0, weightedMarketCapAmount: 0, currency: "", count: 0 }
             };
         }
 
-        const tokenData = tokenGroup[tx.altTokenCA];
+        const entry = groupedData[walletName][altTokenCA];
 
-        if (tx.transactionType === "BUY") {
-            tokenData.totalAltBought += tx.boughtAmount;
-            tokenData.totalNonAltSpent -= tx.soldAmount; // Non-alt token spent (e.g., SOL/USDC)
-        } else if (tx.transactionType === "SELL") {
-            tokenData.totalAltSold += tx.soldAmount;
-            tokenData.totalNonAltSpent += tx.boughtAmount; // Non-alt token received (e.g., SOL/USDC)
+        if (transactionType === "BUY") {
+            entry.buys.totalAltAmount += boughtAmount;
+            entry.buys.totalSpent += soldAmount; // SOL/USDC spent
+            entry.buys.currency = soldToken; // SOL or USDC
+            // Weighted market cap calculation
+            entry.buys.weightedMarketCapSum += altTokenMarketCap * soldAmount; 
+            entry.buys.weightedMarketCapAmount += soldAmount;
+            entry.buys.count += 1
+        } else if (transactionType === "SELL") {
+            entry.sells.totalAltAmount += soldAmount;
+            entry.sells.totalReceived += boughtAmount; // SOL/USDC received
+            entry.sells.currency = boughtToken; // SOL or USDC
+            // Weighted market cap calculation
+            entry.sells.weightedMarketCapSum += altTokenMarketCap * boughtAmount; 
+            entry.sells.weightedMarketCapAmount += boughtAmount;
+            entry.sells.count += 1
         }
+    });
 
-        // Calculate weighted market cap
-        tokenData.weightedMarketCapSum += tx.altTokenMarketCap * (tx.boughtAmount + tx.soldAmount);
-        tokenData.weightedMarketCapCount += (tx.boughtAmount + tx.soldAmount);
-
-        return acc;
-    }, {});
-
-    // Convert to a readable array format
-    return Object.entries(groupedByWallet).map(([walletName, tokens]) => ({
+    // Transform grouped data into a readable array format
+    return Object.entries(groupedData).map(([walletName, tokens]) => ({
         walletName,
-        tokens: Object.values(tokens).map(token => ({
-            altTokenCA: token.altTokenCA,
-            altTokenName: token.altTokenName,
-            netAltAmount: token.totalAltBought - token.totalAltSold, // Net buy/sell of alt token
-            netNonAltAmount: token.totalNonAltSpent, // Net SOL/USDC spent or received
-            nonAltTokenName: token.nonAltTokenName, // Name of non-alt token (SOL/USDC)
-            netType: token.totalAltBought - token.totalAltSold > 0 ? "NET BUY" : token.totalAltBought - token.totalAltSold < 0 ? "NET SELL" : "NEUTRAL",
-            avgMarketCap: token.weightedMarketCapCount > 0
-                ? token.weightedMarketCapSum / token.weightedMarketCapCount
-                : 0
-        })).sort((a, b) => Math.abs(b.netAltAmount) - Math.abs(a.netAltAmount)) // Sort by largest net transaction
+        summaries: Object.entries(tokens).map(([altTokenCA, data]) => {
+            const avgBuyMarketCap = data.buys.weightedMarketCapAmount 
+                ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount 
+                : 0;
+            const avgSellMarketCap = data.sells.weightedMarketCapAmount 
+                ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount 
+                : 0;
+            return {
+                altTokenCA,
+                altTokenSymbol: data.altTokenSymbol,
+                buySummary: {
+                    totalAltAmount: data.buys.totalAltAmount,
+                    totalNonAltAmount: data.buys.totalSpent,
+                    totalNonAltSymbol: data.buys.currency, 
+                    avgMarketCap: avgBuyMarketCap,
+                    count: data.buys.count
+                },
+                sellSummary: {
+                    totalAltAmount: data.sells.totalAltAmount,
+                    totalNonAltAmount: data.sells.totalReceived,
+                    totalNonAltSymbol: data.sells.currency, 
+                    avgMarketCap: avgSellMarketCap,
+                    count: data.sells.count
+                }
+            };
+        })
     }));
 }
 

@@ -18,7 +18,7 @@ async function processTransactions() {
 
 function startCron() { 
     console.log('Starting cron')
-    setInterval(processTransactions, 60*5*1000)
+    setInterval(processTransactions, 60*15*1000)
 }
 
 module.exports = { 
