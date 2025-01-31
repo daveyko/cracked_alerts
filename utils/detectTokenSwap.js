@@ -86,9 +86,7 @@ module.exports = async function detectTokenSwap(preTokenBalances, postTokenBalan
 
 
         if (change !== 0) {
-            console.log('tokenInfoMap', tokenInfoMap)
             const tokenInfo = tokenInfoMap.get(mint);
-            console.log('tokenInfo', tokenInfo)
             // Only use tokenInfo.symbol if it exists and is not undefined
             const tokenKey = mint === USDC_MINT ? 'USDC' :
                 (tokenInfo && tokenInfo.symbol);

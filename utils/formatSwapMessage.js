@@ -1,4 +1,5 @@
 const { WALLET_NAMES } = require('../constants/walletAddresses');
+const { formatCompactNumber } = require('./format')
 
 const GAS_FEE_THRESHOLD = 0.01; // Ignore SOL changes below this amount when other tokens are present
 
@@ -53,9 +54,6 @@ module.exports = function formatSwapMessage(swapResult, signature, walletAddress
         const titleToken = [spentToken, receivedToken].find(token =>
             token.symbol !== 'SOL' && token.symbol !== 'USDC'
         ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
-
-        console.log('titleToken', titleToken);
-
         message += `<b>Cracked Swap Detected for: $${titleToken.symbol}</b>
         
 <b>Token Information</b>
@@ -64,7 +62,7 @@ Socials: ${!!titleToken.info?.socials ? titleToken.info?.socials?.map(social =>
             `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
         ).join(' | ') : 'None'}
 CA: <code>${titleToken.info?.address || titleToken.address}</code>
-Market Cap: $${formatMarketCap(titleToken.info?.marketcap || 0)}
+Market Cap: $${formatCompactNumber(titleToken.info?.marketcap || 0)}
 Price: $${(titleToken.info?.price)?.toLocaleString()}
 5 min txns (buy / sell): ${titleToken.info?.['5mtxn']?.buys || 0} / ${titleToken.info?.['5mtxn']?.sells || 0}
 
@@ -111,16 +109,5 @@ Token Age: ${titleToken.info?.pairCreatedAt ? Math.floor((Date.now() - titleToke
     }
 
     return message;
-}
-
-function formatMarketCap(value) {
-    if (value >= 1e9) {
-        return (value / 1e9).toFixed(2) + 'B';
-    } else if (value >= 1e6) {
-        return (value / 1e6).toFixed(2) + 'M';
-    } else if (value >= 1e3) {
-        return (value / 1e3).toFixed(2) + 'K';
-    }
-    return value.toFixed(2);
 }
 

@@ -1,4 +1,5 @@
 const WALLET_ADDRESSES = [
+    '8wnJFnQnh9MVQxqPinb6Vypgw8HrpFmiXAHimqzWCEGs', // david
     '2xRtkXPfQMn3tQthvYYbKhF4PLjCsd6bn7Y35wtBNHzP', // justin
     '3h65MmPZksoKKyEpEjnWU2Yk2iYT5oZDNitGy5cTaxoE', // JID (pumpfun aper)
     'GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt', // y22 (100k to 1mil)
@@ -13,6 +14,7 @@ const WALLET_ADDRESSES = [
 ];
 
 const WALLET_NAMES = {
+    '8wnJFnQnh9MVQxqPinb6Vypgw8HrpFmiXAHimqzWCEGs': 'David',
     '2xRtkXPfQMn3tQthvYYbKhF4PLjCsd6bn7Y35wtBNHzP': 'Justin',
     '3h65MmPZksoKKyEpEjnWU2Yk2iYT5oZDNitGy5cTaxoE': 'JID', // JID (pumpfun aper)
     'GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt': 'Y22', // Y22 (100k to 1mil)
