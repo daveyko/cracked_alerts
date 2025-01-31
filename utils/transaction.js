@@ -1,6 +1,8 @@
-import { addTransaction as addTransactionRedis } from './redis';
+const cache = require('./memory');
+const { WALLET_NAMES } = require('../constants/walletAddresses')
+const GAS_FEE_THRESHOLD = 0.01; // Ignore SOL changes below this amount when other tokens are present
 
-function getTransaction(swapResult, transactionId, walletAddress) {
+function getTransaction(swapResult, walletAddress) {
     const { USDC, SOL, ...otherTokens } = swapResult;
     const walletName = WALLET_NAMES[walletAddress] || walletAddress.slice(0, 4) + '...';
     const spentTokens = [];
@@ -49,23 +51,23 @@ function getTransaction(swapResult, transactionId, walletAddress) {
         const altTokenName = titleToken.info?.name || 'Unknown';
         const altTokenMarketCap = titleToken.info?.marketcap || 0;
         const altTokenPrice = titleToken.info?.price;
-        const spentAmount = Math.abs(spentToken.amount).toFixed(
+        const spentAmount = parseFloat(Math.abs(spentToken.amount).toFixed(
             spentToken.symbol === 'SOL' ? 4 : 2
-        );
-        const receivedAmount = Math.abs(receivedToken.amount).toFixed(
+        ));
+        const receivedAmount = parseFloat(Math.abs(receivedToken.amount).toFixed(
             receivedToken.symbol === 'SOL' ? 4 : 2
-        );
-        const transactionType = receivedToken.symbol === 'SOL' || 'USDC' ? 'SELL' : 'BUY';
+        ));
+        const transactionType = receivedToken.symbol === 'SOL' || receivedToken.symbol === 'USDC'  ? 'SELL' : 'BUY';
         return {
             altTokenCA,
             altTokenName,
+            altTokenSymbol: titleToken.symbol,
             altTokenMarketCap,
             altTokenPrice,
             boughtAmount: receivedAmount,
             boughtToken: receivedToken.symbol,
             soldAmount: spentAmount,
             soldToken: spentToken.symbol,
-            transactionId,
             transactionType,
             walletName,
         };
@@ -73,12 +75,10 @@ function getTransaction(swapResult, transactionId, walletAddress) {
     return null;
 }
 
-export async function addTransaction(swapResult, transactionId, walletAddress) {
-    try {
-        await addTransactionRedis(getTransaction(swapResult, transactionId, walletAddress));
-    } catch (err) {
-        console.error(
-            `Error writing transaction: ${transactionId}-${walletAddress} to redis. Error: ${error}`
-        );
-    }
+function addTransaction(swapResult, transactionId, walletAddress) {
+    cache.set(transactionId, getTransaction(swapResult, walletAddress))    
+}
+
+module.exports = { 
+    addTransaction
 }

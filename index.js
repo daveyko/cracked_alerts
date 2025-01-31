@@ -2,12 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const { WebSocketServer } = require("ws");
 const { Connection, clusterApiUrl, PublicKey } = require("@solana/web3.js");
-const TelegramBot = require('node-telegram-bot-api');
 const formatSwapMessage = require('./utils/formatSwapMessage');
 const throttledRequest = require('./utils/throttleRequest');
 const { WALLET_ADDRESSES } = require('./constants/walletAddresses');
 const detectTokenSwap = require('./utils/detectTokenSwap');
 const { addTransaction } = require('./utils/transaction')
+const { startCron } = require('./utils/cron')
+const { bot } = require('./utils/tgbot')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,9 +23,6 @@ const connection = new Connection(process.env.SOLANA_RPC_URL || clusterApiUrl("m
 const subscriptions = new Map();
 
 // TODO: create map for common tokens (usdc, sol)
-
-
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
 
 // Transaction handling configuration
 const TRANSACTION_NOT_FOUND_RETRIES = 3;
@@ -117,7 +115,7 @@ const subscribeToWallet = async (address) => {
                         } catch (error) {
                             console.error('Error sending Telegram message:', error);
                         }
-                        addTransaction(swapResult, transaction.slot, address);
+                        addTransaction(swapResult, transaction.transaction.signatures[0], address);
                     } else {
                         console.log('Transaction below threshold, skipping notification');
                     }
@@ -160,3 +158,5 @@ wss.on("connection", (ws) => {
         console.log("WebSocket connection closed.");
     });
 });
+
+startCron()

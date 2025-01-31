@@ -1,20 +1,26 @@
-import { getAllTransactions, deleteTransactions } from './redis';
+const cache = require('./memory');
+const { aggregateTransactions } = require('./transactionAgg')
+const { formatAggMessage } = require('./formatAggMessage')
+const { bot } = require('./tgbot')
 
 async function processTransactions() {
     console.log('Running transaction processor...');
-    const transactions = await getAllTransactions();
-    if (Object.keys(transactions).length === 0) {
-        console.log('No new transactions to process.');
-        return;
+    const transactions = cache.getAll();
+    const transactionIds = [...transactions.keys()]
+    const agg = aggregateTransactions([...transactions.values()]) 
+    if (agg.length > 0) {
+        const message = formatAggMessage(agg)
+        await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
     }
-    // Aggregate transactions
-    const totalSol = Object.values(transactions).reduce((acc, tx) => acc + tx.amountSol, 0);
-    const tokenIds = new Set(Object.values(transactions).map((tx) => tx.tokenId));
-    // Send Telegram message
-    const message = `🚀 **New Transaction Alert!**\n\n✅ **Total SOL Spent:** ${totalSol} SOL\n✅ **Tokens Bought:** ${Array.from(tokenIds).join(', ')}`;
-    await bot.sendMessage(CHAT_ID, message, { parse_mode: 'Markdown' });
-    // Delete processed transactions from Redis
-    const transactionIds = Object.keys(transactions);
-    await deleteTransactions(transactionIds);
+    cache.del(transactionIds);
     console.log(`Processed and cleared ${transactionIds.length} transactions.`);
+}
+
+function startCron() { 
+    console.log('Starting cron')
+    setInterval(processTransactions, 60*5*1000)
+}
+
+module.exports = { 
+    startCron
 }
