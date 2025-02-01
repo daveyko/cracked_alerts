@@ -6,8 +6,9 @@ const formatSwapMessage = require('./utils/formatSwapMessage');
 const throttledRequest = require('./utils/throttleRequest');
 const { WALLET_ADDRESSES } = require('./constants/walletAddresses');
 const detectTokenSwap = require('./utils/detectTokenSwap');
-const { addTransaction } = require('./utils/transaction')
-const { startCron } = require('./utils/cron')
+const { multiWalletAlert } = require('./utils/multiWalletAlert')
+const { getTransaction } = require('./utils/transaction')
+const { pruneCacheStartCron } = require('./utils/cron')
 const { bot } = require('./utils/tgbot')
 
 const app = express();
@@ -27,8 +28,10 @@ const subscriptions = new Map();
 // Transaction handling configuration
 const TRANSACTION_NOT_FOUND_RETRIES = 3;
 const TRANSACTION_NOT_FOUND_DELAY = 1000;
-const MINIMUM_USDC_CHANGE = 2.0;
-const MINIMUM_SOL_CHANGE = 0.02;
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING = 100;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING = 1;
+const MINIMUM_USDC_CHANGE_TRANSACTION_LARGE = 25000;
+const MINIMUM_SOL_CHANGE_TRANSACTION_LARGE = 25;
 const recentTransactions = new Set();
 
 // Add this function to handle wallet subscription
@@ -38,7 +41,6 @@ const subscribeToWallet = async (address) => {
 
         const subscriptionId = connection.onLogs(publicKey, async (logInfo) => {
             try {
-                console.log(`New transaction detected for ${address}`);
                 const signature = logInfo.signature;
 
                 let transaction;
@@ -102,21 +104,21 @@ const subscribeToWallet = async (address) => {
                 // Only proceed if we have both spent and received tokens
                 if (spentTokens.length > 0 && receivedTokens.length > 0) {
                     // Check minimum thresholds
-                    const meetsThreshold = (
-                        (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE) ||
-                        (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE)
+                    const meetsThresholdMultiWalletAction = (
+                        (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING) ||
+                        (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING)
+                    );                 
+                    const parsedTransaction = getTransaction(swapResult, address, transaction.blockTime)
+                    if (meetsThresholdMultiWalletAction && parsedTransaction !== null) {
+                        console.log(`New ${parsedTransaction.transactionType} transaction detected for wallet: ${address} and token: ${parsedTransaction.altTokenCA}`);
+                        multiWalletAlert(parsedTransaction);
+                    }
+                    const meetsThresholdTransactionAction = (
+                        (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE_TRANSACTION_LARGE) ||
+                        (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE_TRANSACTION_LARGE)
                     );
-
-                    if (meetsThreshold) {
-                        try {
-                            const message = formatSwapMessage(swapResult, signature, address);
-                            await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
-                        } catch (error) {
-                            console.error('Error sending Telegram message:', error);
-                        }
-                        addTransaction(swapResult, transaction.transaction.signatures[0], address);
-                    } else {
-                        console.log('Transaction below threshold, skipping notification');
+                    if (meetsThresholdTransactionAction) {
+                        transactionAlert(swapResult, signature, address)
                     }
                 } else {
                     console.log('Not a swap transaction (no spent or received tokens pair found)');
@@ -134,6 +136,15 @@ const subscribeToWallet = async (address) => {
     }
 };
 
+async function transactionAlert(swapResult, signature, address) { 
+    try {
+        const message = formatSwapMessage(swapResult, signature, address);
+        await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
+    } catch (error) {
+        console.error('Error sending Telegram message:', error);
+    }
+}
+ 
 // Initialize subscriptions for all wallet addresses
 const initializeWalletSubscriptions = async () => {
     console.log('Initializing wallet subscriptions...');
@@ -158,4 +169,4 @@ wss.on("connection", (ws) => {
     });
 });
 
-startCron()
+pruneCacheStartCron()
