@@ -23,7 +23,7 @@ async function multiWalletAlert(transaction) {
             const message = formatAggMessage(agg, "3 WALLET ACTION ALERT!")
             await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
         }
-        cache.del(cacheKey);
+        cache.del([cacheKey]);
     }
 }
 
