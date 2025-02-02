@@ -107,20 +107,21 @@ const subscribeToWallet = async (address) => {
                     const meetsThresholdMultiWalletAction = (
                         (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING) ||
                         (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING)
-                    );                 
+                    );
                     const parsedTransaction = getTransaction(swapResult, address, transaction.blockTime)
                     if (meetsThresholdMultiWalletAction && parsedTransaction !== null) {
                         console.log(`New ${parsedTransaction.transactionType} transaction detected for wallet: ${address} and token: ${parsedTransaction.altTokenCA}`);
                         multiWalletAlert(parsedTransaction);
                     }
-                    const meetsThresholdTransactionAction = (
-                        (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE_TRANSACTION_LARGE) ||
-                        (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE_TRANSACTION_LARGE)
-                    );
-                    if (meetsThresholdTransactionAction) {
-                        transactionAlert(swapResult, signature, address)
-                    }
-                } else {
+                    // don't need to track every transaction. just the aggregate actions
+                    //     const meetsThresholdTransactionAction = (
+                    //         (swapResult.SOL?.amount && Math.abs(swapResult.SOL.amount) > MINIMUM_SOL_CHANGE_TRANSACTION_LARGE) ||
+                    //         (swapResult.USDC?.amount && Math.abs(swapResult.USDC.amount) > MINIMUM_USDC_CHANGE_TRANSACTION_LARGE)
+                    //     );
+                    //     if (meetsThresholdTransactionAction) {
+                    //         transactionAlert(swapResult, signature, address)
+                    //     }
+                    // } else {
                     console.log('Not a swap transaction (no spent or received tokens pair found)');
                 }
             } catch (error) {
@@ -136,15 +137,15 @@ const subscribeToWallet = async (address) => {
     }
 };
 
-async function transactionAlert(swapResult, signature, address) { 
-    try {
-        const message = formatSwapMessage(swapResult, signature, address);
-        await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
-    } catch (error) {
-        console.error('Error sending Telegram message:', error);
-    }
-}
- 
+// async function transactionAlert(swapResult, signature, address) {
+//     try {
+//         const message = formatSwapMessage(swapResult, signature, address);
+//         await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
+//     } catch (error) {
+//         console.error('Error sending Telegram message:', error);
+//     }
+// }
+
 // Initialize subscriptions for all wallet addresses
 const initializeWalletSubscriptions = async () => {
     console.log('Initializing wallet subscriptions...');
@@ -153,7 +154,7 @@ const initializeWalletSubscriptions = async () => {
     }
     console.log(`Initialized subscriptions for ${WALLET_ADDRESSES.length} wallets`);
     try {
-        const message = `💉 CRACKED ALERTS IS ONLINE!\n🔍 Monitoring ${WALLET_ADDRESSES.length} wallets 🔎`;
+        const message = `💉 CRACKED ALERTS IS ONLINE!💉\n🔍 Monitoring ${WALLET_ADDRESSES.length} wallets 🔎`;
         await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message);
     } catch (error) {
         console.error('Error sending Telegram connection message:', error);
