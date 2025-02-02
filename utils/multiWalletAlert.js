@@ -21,7 +21,6 @@ async function multiWalletAlert(transaction) {
         const agg = aggregateTransactions([...tokenEntry.transactions])
         if (agg.length > 0) {
             const message = await formatAggMessage(agg, `${tokenEntry.uniqueWallets.size} WALLET ACTION ALERT`);
-            console.log('message in multiwallet', message);
             await bot.sendMessage(process.env.TELEGRAM_CHAT_ID, message, { parse_mode: 'HTML', disable_web_page_preview: true });
         }
         cache.del([cacheKey]);

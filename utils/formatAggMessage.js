@@ -3,7 +3,6 @@ const { formatCompactNumber } = require('./format')
 async function formatAggMessage(data, title) {
     const { altTokenSymbol, altTokenCA } = data[0].summaries[0]
 
-    console.log(data[0].summaries[0])
     let message = '';
     let tokenMetaData;
     try {
@@ -30,7 +29,7 @@ async function formatAggMessage(data, title) {
             };
         }
     } catch (error) {
-        // console.error(`Error fetching token metadata for ${altTokenCA}:`, error);
+        console.error(`Error fetching token metadata for ${altTokenCA}:`, error);
     }
 
     message += `<b>💉💉💉 Cracked Swap Detected for: $${altTokenSymbol} 💉💉💉</b>
@@ -63,7 +62,7 @@ Token Age: ${tokenMetaData?.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDa
             if (summary.sellSummary.count > 0) {
                 message += `🔴 ${formatCompactNumber(Math.abs(summary.sellSummary.totalAltAmount))} <a href="https://dexscreener.com/solana/${summary.altTokenCA}">${summary.altTokenSymbol.toLowerCase()}</a> → ${Math.abs(summary.sellSummary.totalNonAltAmount).toFixed(2)} $${summary.sellSummary.totalNonAltSymbol.toLowerCase()} | Avg MC: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
             }
-            message += `---\n`
+            message += `---\n\n`
         });
     });
 

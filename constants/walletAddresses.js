@@ -19,7 +19,6 @@ const WALLET_ADDRESSES = [
     'dS8AzSWKkLunMja4CnAVBmJzpqTphfbqNQoQxPPagTv', // Overall cooker
     'GtyhzqA5ARhfMMn1weV7knuVMyYTJ2ipfVKrTGsjk7ZC', // 70% winrate
     'Efqoo7tUd9bhrA8kEZ6YhtBbo2mhr6VLAKzQEsBTyUsk', // 75% winrate
-    '2xRtkXPfQMn3tQthvYYbKhF4PLjCsd6bn7Y35wtBNHzP',
 ];
 
 const WALLET_NAMES = {
@@ -43,7 +42,6 @@ const WALLET_NAMES = {
     'dS8AzSWKkLunMja4CnAVBmJzpqTphfbqNQoQxPPagTv': 'Smart wallet #3 (42% WR)', // Overall cooker
     'GtyhzqA5ARhfMMn1weV7knuVMyYTJ2ipfVKrTGsjk7ZC': 'Smart wallet #4 (70% WR - doesnt trade much)', // 70% winrate
     'Efqoo7tUd9bhrA8kEZ6YhtBbo2mhr6VLAKzQEsBTyUsk': 'Smart wallet #5 (75% WR - doesnt trade much. usually sizes in)', // 75% winrate
-    '2xRtkXPfQMn3tQthvYYbKhF4PLjCsd6bn7Y35wtBNHzP': 'justin'
 };
 
 module.exports = {

@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const { WebSocketServer } = require("ws");
 const { Connection, clusterApiUrl, PublicKey } = require("@solana/web3.js");
-const formatSwapMessage = require('./utils/formatSwapMessage');
 const throttledRequest = require('./utils/throttleRequest');
 const { WALLET_ADDRESSES } = require('./constants/walletAddresses');
 const detectTokenSwap = require('./utils/detectTokenSwap');
