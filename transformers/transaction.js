@@ -71,7 +71,7 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
                 altTokenMetadata: { 
                     fiveMinTxn: titleToken.info?.["5mtxn"],
                     fiveMinVol: titleToken.info?.["5mvol"],
-                    marketCap: titleToken.info?.marketCap,
+                    marketCap: titleToken.info?.marketcap,
                     pairCreatedAt: titleToken.info?.pairCreatedAt,
                     price: titleToken.info?.price || 0,
                     socials: titleToken.info?.socials || null,
