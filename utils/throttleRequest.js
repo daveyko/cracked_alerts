@@ -13,7 +13,7 @@ module.exports = async function throttledRequest(callback) {
     if (timeToWait > 0) {
         await new Promise(resolve => setTimeout(resolve, timeToWait));
     }
-
+    
     lastRequestTime = Date.now();
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
