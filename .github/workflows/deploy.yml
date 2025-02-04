@@ -20,5 +20,5 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           script: |
-            cd /cracked_alerts
+            cd cracked_alerts
             ./deploy.sh
