@@ -1,7 +1,8 @@
-const { transactionAggByWalletToken } = require('../transformers/transactionAggByWalletToken')
+const { transactionAggByWalletToken, transactionAggByWalletTokenMessage } = require('../transformers/transactionAggByWalletToken')
 
 const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING = 200;
 const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING = 1;
+const ALERT_THRESHOLD = 3
 
 async function multiWalletAlert(transaction, cache, postMessage) { 
     const { altTokenCA, walletName, transactionType } = transaction;
@@ -19,7 +20,7 @@ async function multiWalletAlert(transaction, cache, postMessage) {
     if (tokenEntry.uniqueWallets.size >= ALERT_THRESHOLD) {
         const agg = transactionAggByWalletToken([...tokenEntry.transactions]) 
         if (agg.length > 0) {
-            const message = formatAggMessage(agg, "3 WALLET ACTION ALERT!")
+            const message = transactionAggByWalletTokenMessage(agg, "3 WALLET ACTION ALERT!")
             await postMessage(message, { parse_mode: 'HTML', disable_web_page_preview: true });
         }
         cache.del([cacheKey]);

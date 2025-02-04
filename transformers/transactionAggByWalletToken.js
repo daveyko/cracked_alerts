@@ -27,6 +27,7 @@ function transactionAggByWalletToken(transactions) {
             groupedData[walletName][altTokenCA] = {
                 altTokenCA,
                 altTokenSymbol,
+                altTokenMetadata,
                 buys: { totalAltAmount: 0, totalSpent: 0, weightedMarketCapSum: 0, weightedMarketCapAmount: 0, currency: "" , count: 0 },
                 sells: { totalAltAmount: 0, totalReceived: 0, weightedMarketCapSum: 0, weightedMarketCapAmount: 0, currency: "", count: 0 }
             };
@@ -66,7 +67,7 @@ function transactionAggByWalletToken(transactions) {
             return {
                 altTokenCA,
                 altTokenSymbol: data.altTokenSymbol,
-                altTokenMetadata,
+                altTokenMetadata: data.altTokenMetadata,
                 buySummary: {
                     totalAltAmount: data.buys.totalAltAmount,
                     totalNonAltAmount: data.buys.totalSpent,
@@ -92,7 +93,7 @@ function transactionAggByWalletTokenMessage(data, title) {
     data.forEach(wallet => { 
         wallet.summaries.forEach(summary => { 
             if (!tokenCaToMetadata[summary.altTokenCA]) { 
-                tokenCaToMetadata[altTokenCA] = { ...summary.altTokenMetadata, symbol: summary.altTokenSymbol }
+                tokenCaToMetadata[summary.altTokenCA] = { ...summary.altTokenMetadata, symbol: summary.altTokenSymbol }
             }
         })
     })

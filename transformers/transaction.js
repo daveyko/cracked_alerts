@@ -3,8 +3,8 @@ const { WALLET_NAMES } = require('../constants/walletAddresses')
 const { detectTokenSwap } = require('./tokenSwap')
 const GAS_FEE_THRESHOLD = 0.01; // Ignore SOL changes below this amount when other tokens are present
 
-async function getTransaction(rawTransaction, fetchTokenData) { 
-        const swapResult = await detectTokenSwap(rawTransaction, fetchTokenData)
+async function getTransaction(rawTransaction, walletAddress, fetchTokenData) { 
+        const swapResult = await detectTokenSwap(rawTransaction, walletAddress, fetchTokenData)
         const { USDC, SOL, ...otherTokens } = swapResult;
         const walletName = WALLET_NAMES[walletAddress] || walletAddress.slice(0, 4) + '...';
         const spentTokens = [];
@@ -77,7 +77,7 @@ async function getTransaction(rawTransaction, fetchTokenData) {
                     socials: titleToken.info?.socials || null,
                     website: titleToken.info?.website || null,
                 },
-                blockTime: blockTime ??  Date().now(),
+                blockTime: rawTransaction.blockTime ??  Date().now(),
                 stableTokenAmount,
                 stableTokenSymbol,
                 transactionType,
