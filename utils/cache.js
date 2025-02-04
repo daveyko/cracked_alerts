@@ -21,8 +21,8 @@ class Cache {
         }
     }
 
-    size() { 
-        return this.cache.size
+    size() {
+        return this.cache.size;
     }
 
     getAll() {
