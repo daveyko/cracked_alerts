@@ -3,6 +3,7 @@ const {
     transactionAggByWalletTokenMessage,
 } = require('../transformers/transactionAggByWalletToken');
 const { getWalletScores } = require('../db/walletScores');
+const { runTwitterAnalysis } = require('./runTwitterAnalysis');
 
 const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING = 200;
 const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING = 1;
@@ -31,6 +32,7 @@ async function multiWalletAlert(transaction, cache, postMessage) {
             if (agg.length > 0) {
                 const message = transactionAggByWalletTokenMessage(agg, '3 WALLET ACTION ALERT!');
                 await postMessage(message, { parse_mode: 'HTML', disable_web_page_preview: true });
+                runTwitterAnalysis(altTokenCA);
             }
             cache.del([cacheKey]);
         }
