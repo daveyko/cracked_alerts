@@ -142,8 +142,7 @@ async function updateUnrealizedProfit(fetchTokenDataMulti) {
 
     tokenDataList.forEach((tokenData) => {
         if (tokenData && tokenData.pairs && tokenData.pairs[0]) {
-            const baseToken = tokenData.pairs[0].baseToken;
-            priceMap[baseToken.address] = Number(baseToken.priceUsd);
+            priceMap[tokenData.pairs[0].baseToken.address] = Number(tokenData.pairs[0].priceUsd);
         }
     });
 
@@ -154,6 +153,9 @@ async function updateUnrealizedProfit(fetchTokenDataMulti) {
         total_sold_quantity,
         avg_buy_price_usd,
     } of positions) {
+        if (!(alt_token_ca in priceMap)) {
+            continue;
+        }
         let remaining_quantity = total_bought_quantity - total_sold_quantity;
 
         // 🚨 Fix: If we have negative holdings, set unrealized profit to 0
