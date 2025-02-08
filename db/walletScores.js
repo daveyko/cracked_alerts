@@ -97,6 +97,17 @@ async function updateWalletScores() {
     }
 }
 
+async function getWalletScores(walletAddresses) {
+    const { rows } = await pool.query(
+        `SELECT wallet_address, unique_tokens_traded_per_day, total_profit, wallet_score 
+         FROM wallet_scores 
+         WHERE wallet_address = ANY($1)`,
+        [walletAddresses]
+    );
+    return rows;
+}
+
 module.exports = {
     updateWalletScores,
+    getWalletScores,
 };
