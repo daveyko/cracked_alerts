@@ -4,7 +4,9 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "node-pg-migrate": "^7.9.0",
     "node-telegram-bot-api": "^0.66.0",
+    "pg": "^8.13.1",
     "ws": "^8.18.0"
   },
   "devDependencies": {
@@ -14,6 +16,8 @@
   "scripts": {
     "start": "node index.js",
     "start-inspect": "node --inspect index.js",
+    "migrate": "npx node-pg-migrate up",
+    "rollback": "npx node-pg-migrate down",
     "dev": "nodemon index.js",
     "format": "prettier --write ."
   }
