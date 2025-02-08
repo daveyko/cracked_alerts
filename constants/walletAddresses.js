@@ -6,7 +6,6 @@ const WALLET_ADDRESSES = [
     '8zFZHuSRuDpuAR7J6FzwyF3vKNx4CVW3DFHJerQhc7Zd', // POW (KOL aper)
     'CKXzCmgNgQGonGvx9gpaHV9RXg1fHrMkQWmyzFuy4Cbv', // pnut insider
     'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL', // Frank
-    'suqh5sHtr8HyJ7q8scBimULPkPpA557prMG47xCHQfK', // Cupsey
     '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6', // Cooker
     '215nhcAHjQQGgwpQSJQ7zR26etbjjtVdW74NLzwEgQjP', // AP
     '9yYya3F5EJoLnBNKW6z4bZvyQytMXzDcpU5D6yYr4jqL', // Loopier
@@ -20,7 +19,7 @@ const WALLET_ADDRESSES = [
     'GtyhzqA5ARhfMMn1weV7knuVMyYTJ2ipfVKrTGsjk7ZC', // 70% winrate
     'Efqoo7tUd9bhrA8kEZ6YhtBbo2mhr6VLAKzQEsBTyUsk', // 75% winrate
     // pranav dd wallets
-    'DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm', // pranav dd #1 swing trading, long term holds 
+    'DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm', // pranav dd #1 swing trading, long term holds
     '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6', // pranav dd #2 low cap snipes
     '4vw54BmAogeRV3vPKWyFet5yf8DTLcREzdSzx4rw9Ud9', // pranav dd #3 low cap snipes but mid cap swings
     'EHg5YkU2SZBTvuT87rUsvxArGp3HLeye1fXaSDfuMyaf', // pranav dd #4 snipes but mid caps swing trade. no high cap
@@ -43,51 +42,57 @@ const WALLET_ADDRESSES = [
 ];
 
 const WALLET_NAMES = {
-    '8wnJFnQnh9MVQxqPinb6Vypgw8HrpFmiXAHimqzWCEGs': "David", // David (test)
+    '8wnJFnQnh9MVQxqPinb6Vypgw8HrpFmiXAHimqzWCEGs': 'David', // David (test)
     '3h65MmPZksoKKyEpEjnWU2Yk2iYT5oZDNitGy5cTaxoE': 'JID (pumpfun aper)', // JID (pumpfun aper)
-    'GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt': 'Y22 (500k to 5mil challenge)', // Y22 (100k to 1mil)
-    'nPosUpnDtaB4dBaJUMF1bm78E4BTZDwWQWGoEmEyESx': 'Trippy (smart/eng investor)', // Trippy (smart investor)
+    GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt: 'Y22 (500k to 5mil challenge)', // Y22 (100k to 1mil)
+    nPosUpnDtaB4dBaJUMF1bm78E4BTZDwWQWGoEmEyESx: 'Trippy (smart/eng investor)', // Trippy (smart investor)
     '8zFZHuSRuDpuAR7J6FzwyF3vKNx4CVW3DFHJerQhc7Zd': 'POW (KOL aper)', // POW (KOL aper)
-    'CKXzCmgNgQGonGvx9gpaHV9RXg1fHrMkQWmyzFuy4Cbv': 'Pnut Insider', // Pnut Insider
-    'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL': 'FrankDeGods (Kolscan #2)', // Frank
-    'suqh5sHtr8HyJ7q8scBimULPkPpA557prMG47xCHQfK': 'Cupsey (Kolscan #2)', // Cupsey
+    CKXzCmgNgQGonGvx9gpaHV9RXg1fHrMkQWmyzFuy4Cbv: 'Pnut Insider', // Pnut Insider
+    CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL: 'FrankDeGods (Kolscan #2)', // Frank
     '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6': 'Cooker', // Cooker
     '215nhcAHjQQGgwpQSJQ7zR26etbjjtVdW74NLzwEgQjP': 'AP (Kolscan #3)', // AP
     '9yYya3F5EJoLnBNKW6z4bZvyQytMXzDcpU5D6yYr4jqL': 'Loopier (Kolscan #4)', // Loopier
-    'DfMxre4cKmvogbLrPigxmibVTTQDuzjdXojWzjCXXhzj': 'Euris (Kolscan #5)', // Euris
-    'EHg5YkU2SZBTvuT87rUsvxArGp3HLeye1fXaSDfuMyaf': 'TIL (Kolscan #6)', // TIL
-    'EaVboaPxFCYanjoNWdkxTbPvt57nhXGu5i6m9m6ZS2kK': 'Danny (Kolscan #7)', // Danny
-    'G5nxEXuFMfV74DSnsrSatqCW32F34XUnBeq3PfDS7w5E': 'Lebron', // Lebron
+    DfMxre4cKmvogbLrPigxmibVTTQDuzjdXojWzjCXXhzj: 'Euris (Kolscan #5)', // Euris
+    EHg5YkU2SZBTvuT87rUsvxArGp3HLeye1fXaSDfuMyaf: 'TIL (Kolscan #6)', // TIL
+    EaVboaPxFCYanjoNWdkxTbPvt57nhXGu5i6m9m6ZS2kK: 'Danny (Kolscan #7)', // Danny
+    G5nxEXuFMfV74DSnsrSatqCW32F34XUnBeq3PfDS7w5E: 'Lebron', // Lebron
     '2J4yED9RVQ9jEnj4t5AvKKVyxHH4eHiGxaLASy8mvPST': 'Smart wallet #1 (50% WR)', // Jelly Smart Investor 50% wr
     '687kTFNvKG9GXf8UsPzyrKbKpz5ExNrSCWfs7S4PTGiL': 'Smart wallet #2 (40% WR)', // Made 500k on Jelly and 60k on Lux 40% winrate
-    'dS8AzSWKkLunMja4CnAVBmJzpqTphfbqNQoQxPPagTv': 'Smart wallet #3 (42% WR)', // Overall cooker
-    'GtyhzqA5ARhfMMn1weV7knuVMyYTJ2ipfVKrTGsjk7ZC': 'Smart wallet #4 (70% WR - doesnt trade much)', // 70% winrate
-    'Efqoo7tUd9bhrA8kEZ6YhtBbo2mhr6VLAKzQEsBTyUsk': 'Smart wallet #5 (75% WR - doesnt trade much. usually sizes in)', // 75% winrate
+    dS8AzSWKkLunMja4CnAVBmJzpqTphfbqNQoQxPPagTv: 'Smart wallet #3 (42% WR)', // Overall cooker
+    GtyhzqA5ARhfMMn1weV7knuVMyYTJ2ipfVKrTGsjk7ZC: 'Smart wallet #4 (70% WR - doesnt trade much)', // 70% winrate
+    Efqoo7tUd9bhrA8kEZ6YhtBbo2mhr6VLAKzQEsBTyUsk:
+        'Smart wallet #5 (75% WR - doesnt trade much. usually sizes in)', // 75% winrate
     // pranav dd wallets
-    'DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm': 'Pranav DD #1 (swing trading, long term holds)',
+    DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm: 'Pranav DD #1 (swing trading, long term holds)',
     '8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6': 'Pranav DD #2 (low cap snipes)',
-    '4vw54BmAogeRV3vPKWyFet5yf8DTLcREzdSzx4rw9Ud9': 'Pranav DD #3 (low cap snipes but mid cap swings)',
-    'EHg5YkU2SZBTvuT87rUsvxArGp3HLeye1fXaSDfuMyaf': 'Pranav DD #4 (snipes but mid caps swing trade. no high cap)',
-    'DYAn4XpAkN5mhiXkRB7dGq4Jadnx6XYgu8L5b3WGhbrt': 'Pranav DD #5 (Low to mid caps)',
+    '4vw54BmAogeRV3vPKWyFet5yf8DTLcREzdSzx4rw9Ud9':
+        'Pranav DD #3 (low cap snipes but mid cap swings)',
+    EHg5YkU2SZBTvuT87rUsvxArGp3HLeye1fXaSDfuMyaf:
+        'Pranav DD #4 (snipes but mid caps swing trade. no high cap)',
+    DYAn4XpAkN5mhiXkRB7dGq4Jadnx6XYgu8L5b3WGhbrt: 'Pranav DD #5 (Low to mid caps)',
     '2CXbN6nuTTb4vCrtYM89SfQHMMKGPAW4mvFe6Ht4Yo6z': 'Pranav DD #6 (Low to mid caps)',
-    'GfXQesPe3Zuwg8JhAt6Cg8euJDTVx751enp9EQQmhzPH': 'Pranav DD #7 (bit of everything)',
-    '7ABz8qEFZTHPkovMDsmQkm64DZWN5wRtU7LEtD2ShkQ6': 'Pranav DD #8 (bit of everything low mid high swing trades)',
-    'BXNiM7pqt9Ld3b2Hc8iT3mA5bSwoe9CRrtkSUs15SLWN': 'Pranav DD #9 (low to mid caps)',
+    GfXQesPe3Zuwg8JhAt6Cg8euJDTVx751enp9EQQmhzPH: 'Pranav DD #7 (bit of everything)',
+    '7ABz8qEFZTHPkovMDsmQkm64DZWN5wRtU7LEtD2ShkQ6':
+        'Pranav DD #8 (bit of everything low mid high swing trades)',
+    BXNiM7pqt9Ld3b2Hc8iT3mA5bSwoe9CRrtkSUs15SLWN: 'Pranav DD #9 (low to mid caps)',
     '96sErVjEN7LNJ6Uvj63bdRWZxNuBngj56fnT9biHLKBf': 'Pranav DD #10 (swing trading mid caps)',
-    'ApRnQN2HkbCn7W2WWiT2FEKvuKJp9LugRyAE1a9Hdz1': 'Pranav DD #11 (small snipes and mid caps only)',
-    'GJA1HEbxGnqBhBifH9uQauzXSB53to5rhDrzmKxhSU65': 'Pranav DD #12 (low to mid caps)',
-    'BCnqsPEtA1TkgednYEebRpkmwFRJDCjMQcKZMMtEdArc': 'Pranav DD #13 (Snipe and swing mid caps. Most coins go over 100k but stay under 10ms)',
-    'BD7oWkEQsUwE8sj4UT7jtrGjHC8Gq1iRqXY7U6DTbJpf': 'Pranav DD #14 (low to mid caps)',
-    '7SDs3PjT2mswKQ7Zo4FTucn9gJdtuW4jaacPA65BseHS': 'Pranav DD #15 (Solid snipes most snipes goin > 1m before sell off)',
+    ApRnQN2HkbCn7W2WWiT2FEKvuKJp9LugRyAE1a9Hdz1: 'Pranav DD #11 (small snipes and mid caps only)',
+    GJA1HEbxGnqBhBifH9uQauzXSB53to5rhDrzmKxhSU65: 'Pranav DD #12 (low to mid caps)',
+    BCnqsPEtA1TkgednYEebRpkmwFRJDCjMQcKZMMtEdArc:
+        'Pranav DD #13 (Snipe and swing mid caps. Most coins go over 100k but stay under 10ms)',
+    BD7oWkEQsUwE8sj4UT7jtrGjHC8Gq1iRqXY7U6DTbJpf: 'Pranav DD #14 (low to mid caps)',
+    '7SDs3PjT2mswKQ7Zo4FTucn9gJdtuW4jaacPA65BseHS':
+        'Pranav DD #15 (Solid snipes most snipes goin > 1m before sell off)',
     '9yYya3F5EJoLnBNKW6z4bZvyQytMXzDcpU5D6yYr4jqL': 'Pranav DD #16 (mixed bag)',
     '5TuiERc4X7EgZTxNmj8PHgzUAfNHZRLYHKp4DuiWevXv': 'Pranav DD #17 (mixed bag)',
-    'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL': 'Pranav DD #18 (Mix of low cap snipes and mid caps that go up to couple ms before dying.)',
-    'ATFRUwvyMh61w2Ab6AZxUyxsAfiiuG1RqL6iv3Vi9q2B': 'Pranav DD #19 (Swing trader trading on mid and high caps (finally))',
+    CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL:
+        'Pranav DD #18 (Mix of low cap snipes and mid caps that go up to couple ms before dying.)',
+    ATFRUwvyMh61w2Ab6AZxUyxsAfiiuG1RqL6iv3Vi9q2B:
+        'Pranav DD #19 (Swing trader trading on mid and high caps (finally))',
     '6S8GezkxYUfZy9JPtYnanbcZTMB87Wjt1qx3c6ELajKC': 'Pranav DD #20 (good mix)',
-
 };
 
 module.exports = {
     WALLET_ADDRESSES,
-    WALLET_NAMES
+    WALLET_NAMES,
 };
