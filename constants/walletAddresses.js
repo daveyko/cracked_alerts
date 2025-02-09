@@ -39,6 +39,8 @@ const WALLET_ADDRESSES = [
     'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL', // pranav dd #18 Mix of low cap snipes and mid caps that go up to couple ms before dying.
     'ATFRUwvyMh61w2Ab6AZxUyxsAfiiuG1RqL6iv3Vi9q2B', // pranav dd #19 Swing trader trading on mid and high caps (finally)
     '6S8GezkxYUfZy9JPtYnanbcZTMB87Wjt1qx3c6ELajKC', // pranav dd #20 good mix
+    //PORTNOY
+    '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD', // PORTNOY
 ];
 
 const WALLET_NAMES = {
@@ -90,6 +92,7 @@ const WALLET_NAMES = {
     ATFRUwvyMh61w2Ab6AZxUyxsAfiiuG1RqL6iv3Vi9q2B:
         'Pranav DD #19 (Swing trader trading on mid and high caps (finally))',
     '6S8GezkxYUfZy9JPtYnanbcZTMB87Wjt1qx3c6ELajKC': 'Pranav DD #20 (good mix)',
+    '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD': 'PORTNOY',
 };
 
 module.exports = {

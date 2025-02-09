@@ -1,8 +1,12 @@
+const { WALLET_NAMES } = require('../constants/walletAddresses');
+const GAS_FEE_THRESHOLD = 0.01; // Ignore SOL changes below this amount when other tokens are present
+const { formatCompactNumber } = require('../utils/format');
+
 async function detectTokenSwap(transaction, walletAddress, fetchTokenData) {
     const preTokenBalances = transaction.meta.preTokenBalances;
     const postTokenBalances = transaction.meta.postTokenBalances;
-    const preBalances = transaction.meta.preBalances
-    const postBalances = transaction.meta.postBalances
+    const preBalances = transaction.meta.preBalances;
+    const postBalances = transaction.meta.postBalances;
     const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
     const SOL_MINT = 'So11111111111111111111111111111111111111112';
     const preMap = new Map();
@@ -32,8 +36,8 @@ async function detectTokenSwap(transaction, walletAddress, fetchTokenData) {
         if (mint !== USDC_MINT && mint !== SOL_MINT) {
             const fetchPromise = (async () => {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    const data = await fetchTokenData(mint)
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    const data = await fetchTokenData(mint);
                     if (data && data.pairs && data.pairs[0]) {
                         tokenInfoMap.set(mint, {
                             symbol: data.pairs[0].baseToken.symbol,
@@ -70,7 +74,7 @@ async function detectTokenSwap(transaction, walletAddress, fetchTokenData) {
     if (Math.abs(solChange) > 0) {
         result.SOL = {
             amount: solChange,
-            type: solChange > 0 ? 'Received' : 'Spent'
+            type: solChange > 0 ? 'Received' : 'Spent',
         };
     }
 
@@ -80,17 +84,15 @@ async function detectTokenSwap(transaction, walletAddress, fetchTokenData) {
         const postAmount = postMap.get(mint) || 0;
         const change = postAmount - preAmount;
 
-
         if (change !== 0) {
             const tokenInfo = tokenInfoMap.get(mint);
             // Only use tokenInfo.symbol if it exists and is not undefined
-            const tokenKey = mint === USDC_MINT ? 'USDC' :
-                (tokenInfo && tokenInfo.symbol);
+            const tokenKey = mint === USDC_MINT ? 'USDC' : tokenInfo && tokenInfo.symbol;
             result[tokenKey] = {
                 address: mint,
                 amount: change,
                 type: change > 0 ? 'Received' : 'Spent',
-                info: tokenInfo // Will be undefined for USDC
+                info: tokenInfo, // Will be undefined for USDC
             };
         }
     }
@@ -119,7 +121,7 @@ function tokenSwapMessage(swapResult, signature, walletAddress) {
     for (const [mint, token] of Object.entries(otherTokens)) {
         const tokenData = {
             symbol: token.info?.symbol || mint.slice(0, 4) + '...',
-            ...token
+            ...token,
         };
 
         if (token.type === 'Spent') spentTokens.push(tokenData);
@@ -132,7 +134,7 @@ function tokenSwapMessage(swapResult, signature, walletAddress) {
             if (token.type === 'Spent') {
                 spentTokens.push({
                     symbol: token.info?.symbol || mint.slice(0, 4) + '...',
-                    ...token
+                    ...token,
                 });
                 break;
             }
@@ -145,19 +147,27 @@ function tokenSwapMessage(swapResult, signature, walletAddress) {
         const receivedToken = receivedTokens[0];
 
         // Determine which token to show in title (non-SOL/USDC token)
-        const titleToken = [spentToken, receivedToken].find(token =>
-            token.symbol !== 'SOL' && token.symbol !== 'USDC'
-        ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
+        const titleToken =
+            [spentToken, receivedToken].find(
+                (token) => token.symbol !== 'SOL' && token.symbol !== 'USDC'
+            ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
         message += `<b>Cracked Swap Detected for: $${titleToken.symbol}</b>
         
 <b>Token Information</b>
 Name: ${titleToken.info?.name || 'Unknown'}
-Socials: ${!!titleToken.info?.socials ? titleToken.info?.socials?.map(social =>
-            `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
-        ).join(' | ') : 'None'}
+Socials: ${
+            !!titleToken.info?.socials
+                ? titleToken.info?.socials
+                      ?.map(
+                          (social) =>
+                              `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
+                      )
+                      .join(' | ')
+                : 'None'
+        }
 CA: <code>${titleToken.info?.address || titleToken.address}</code>
 Market Cap: $${formatCompactNumber(titleToken.info?.marketcap || 0)}
-Price: $${(titleToken.info?.price)?.toLocaleString()}
+Price: $${titleToken.info?.price?.toLocaleString()}
 5 min txns (buy / sell): ${titleToken.info?.['5mtxn']?.buys || 0} / ${titleToken.info?.['5mtxn']?.sells || 0}
 
 Security Information
@@ -165,7 +175,7 @@ Token Age: ${titleToken.info?.pairCreatedAt ? Math.floor((Date.now() - titleToke
 
 --------------------------------------------------------------------
 
-`
+`;
 
         // Security Information
         // Dev: 74BX...1kMC
@@ -182,30 +192,31 @@ Token Age: ${titleToken.info?.pairCreatedAt ? Math.floor((Date.now() - titleToke
             receivedToken.symbol === 'SOL' ? 4 : 2
         );
 
-
-        const spentSymbol = spentToken.symbol === 'SOL' ? '◎' :
-            spentToken.symbol === 'USDC' ? '💵' : '';
-        const receivedSymbol = receivedToken.symbol === 'SOL' ? '◎' :
-            receivedToken.symbol === 'USDC' ? '💵' : '';
+        const spentSymbol =
+            spentToken.symbol === 'SOL' ? '◎' : spentToken.symbol === 'USDC' ? '💵' : '';
+        const receivedSymbol =
+            receivedToken.symbol === 'SOL' ? '◎' : receivedToken.symbol === 'USDC' ? '💵' : '';
 
         message += `Swapped ${spentSymbol}${spentAmount} ${spentToken.symbol} for ${receivedSymbol}${receivedAmount} ${receivedToken.symbol}`;
 
         // Add price info if available for non-SOL/USDC tokens
         if (receivedToken.info?.price) {
-            const totalValue = (Math.abs(receivedToken.amount) * receivedToken.info.price).toFixed(2);
+            const totalValue = (Math.abs(receivedToken.amount) * receivedToken.info.price).toFixed(
+                2
+            );
             message += `\nToken Price: $${receivedToken.info.price.toFixed(4)} (Total: $${totalValue})`;
         }
 
         // Quick Links:
-        message += `\n<b>Quick Links:</b>\n`
-        message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${titleToken.info?.address || titleToken.address}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${titleToken.info?.address || titleToken.address}?handle=66478257f2babf7339037">Photon</a>`
-        message += `\n<b>🔍 Explorer:</b> <a href="https://solscan.io/tx/${signature}">View Transaction</a>`
+        message += `\n<b>Quick Links:</b>\n`;
+        message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${titleToken.info?.address || titleToken.address}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${titleToken.info?.address || titleToken.address}?handle=66478257f2babf7339037">Photon</a>`;
+        message += `\n<b>🔍 Explorer:</b> <a href="https://solscan.io/tx/${signature}">View Transaction</a>`;
     }
 
     return message;
 }
 
-module.exports = { 
-    detectTokenSwap, 
-    tokenSwapMessage
-}
+module.exports = {
+    detectTokenSwap,
+    tokenSwapMessage,
+};
