@@ -6,8 +6,6 @@ const { insertTransactions } = require('./services/insertTransactions');
 const { updateWalletScoresCron } = require('./services/cronUpdateWalletScores');
 const { transactionAlert } = require('./services/alertTransaction');
 const { getTransaction } = require('./transformers/transaction');
-const { detectTokenSwap } = require('./transformers/tokenSwap');
-const { PORTNOY_WALLET_ADDRESS, VIP_CHAT_ID } = require('./constants/vipChat');
 const cache = require('./utils/cache');
 
 //Runs once for each wallet transaction
@@ -22,10 +20,14 @@ async function runWalletTransactionPipeline(transaction, address, signature) {
             multiWalletAlert(parsedTransaction, cache, postMessage),
             insertTransactions([parsedTransaction]),
         ]);
-        if (address === PORTNOY_WALLET_ADDRESS) {
-            const swapResult = await detectTokenSwap(transaction, address, fetchDexTokenData);
-            await transactionAlert({ swapResult, address, signature }, postMessage, VIP_CHAT_ID);
-        }
+        await transactionAlert(
+            address,
+            signature,
+            transaction,
+            parsedTransaction,
+            fetchDexTokenData,
+            postMessage
+        );
     } else {
         console.log('Not a swap transaction (no spent or received tokens pair found)');
     }
