@@ -129,22 +129,22 @@ function transactionAggByWalletTokenMessage(data, title) {
             }
         });
     });
+
     Object.entries(tokenCaToMetadata).forEach(([altTokenCA, tokenMetaData]) => {
-        message += `<b>💉💉💉 Cracked Swap Detected for: $${tokenMetaData.symbol || 'Unknown'} 💉💉💉</b>
+        message += `<b>${data[0].summaries[0].buySummary.count > 0 ? '🟢🟢🟢 Cracked BUY' : data[0].summaries[0].sellSummary.count > 0 ? '🔴🔴🔴 Cracked SELL' : '🟡🟡🟡 STABLE (probably)'} Swap Detected for: $${tokenMetaData.symbol || 'Unknown'} 💉💉💉</b>
 <b>${title}:</b>
 
 <b>Token Information</b>
 Name: ${tokenMetaData.symbol || 'Unknown'}
-Socials: ${
-            !!tokenMetaData.socials
+Socials: ${!!tokenMetaData.socials
                 ? tokenMetaData.socials
-                      ?.map(
-                          (social) =>
-                              `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
-                      )
-                      .join(' | ')
+                    ?.map(
+                        (social) =>
+                            `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
+                    )
+                    .join(' | ')
                 : 'None'
-        }
+            }
 CA: <code>${altTokenCA}</code>
 Market Cap: $${formatCompactNumber(tokenMetaData.marketCap || 0)}
 Price: $${tokenMetaData.price}
@@ -186,7 +186,7 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
     message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${altTokenCA}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${altTokenCA}?handle=66478257f2babf7339037">Photon</a> | <a href="https://neo.bullx.io/terminal?chainId=1399811149&address=${altTokenCA}">BullX</a>`;
     message += `\n<b>🤖 Tg Bots:</b> <a href="https://t.me/achilles_trojanbot?start=r-justinrh-${altTokenCA}">Trojan</a>`;
     message += `\n<b>🔍 Explorer:</b> <a href="https://solscan.io/token/${altTokenCA}">View Token</a>`;
-
+    message += `\n<b>📝 CA:</b> <code>${altTokenCA}</code>`
     return message;
 }
 
