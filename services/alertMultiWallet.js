@@ -31,6 +31,8 @@ async function multiWalletAlert(transaction, cache, postMessage) {
             if (agg.length > 0) {
                 const message = transactionAggByWalletTokenMessage(agg, '3 WALLET ACTION ALERT!');
                 await postMessage(message, { parse_mode: 'HTML', disable_web_page_preview: true });
+                // if the tokenmetadata has a twitter handle, run twitter analysis
+
             }
             cache.del([cacheKey]);
         }

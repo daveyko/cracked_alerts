@@ -7,6 +7,7 @@
     "node-pg-migrate": "^7.9.0",
     "node-telegram-bot-api": "^0.66.0",
     "pg": "^8.13.1",
+    "openai": "^4.82.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
