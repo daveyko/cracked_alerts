@@ -135,16 +135,15 @@ function transactionAggByWalletTokenMessage(data, title) {
 
 <b>Token Information</b>
 Name: ${tokenMetaData.symbol || 'Unknown'}
-Socials: ${
-            !!tokenMetaData.socials
+Socials: ${!!tokenMetaData.socials
                 ? tokenMetaData.socials
-                      ?.map(
-                          (social) =>
-                              `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
-                      )
-                      .join(' | ')
+                    ?.map(
+                        (social) =>
+                            `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
+                    )
+                    .join(' | ')
                 : 'None'
-        }
+            }
 CA: <code>${altTokenCA}</code>
 Market Cap: $${formatCompactNumber(tokenMetaData.marketCap || 0)}
 Price: $${tokenMetaData.price}
