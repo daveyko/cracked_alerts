@@ -9,7 +9,7 @@ const { getTransaction } = require('./transformers/transaction');
 const cache = require('./utils/cache');
 
 //Runs once for each wallet transaction
-async function runWalletTransactionPipeline(transaction, address, signature) {
+async function runWalletTransactionPipeline(transaction, address) {
     const parsedTransaction = await getTransaction(transaction, address, fetchDexTokenData);
     // Only proceed if we have both spent and received tokens
     if (parsedTransaction !== null) {
@@ -20,14 +20,7 @@ async function runWalletTransactionPipeline(transaction, address, signature) {
             multiWalletAlert(parsedTransaction, cache, postMessage),
             insertTransactions([parsedTransaction]),
         ]);
-        await transactionAlert(
-            address,
-            signature,
-            transaction,
-            parsedTransaction,
-            fetchDexTokenData,
-            postMessage
-        );
+        await transactionAlert(parsedTransaction, postMessage);
     } else {
         console.log('Not a swap transaction (no spent or received tokens pair found)');
     }

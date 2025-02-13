@@ -1,7 +1,0 @@
-VIP_CHAT_ID = -1002441236901;
-PORTNOY_WALLET_ADDRESS = '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD';
-
-module.exports = {
-    VIP_CHAT_ID,
-    PORTNOY_WALLET_ADDRESS,
-};
