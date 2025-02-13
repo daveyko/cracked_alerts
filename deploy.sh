@@ -25,6 +25,8 @@ fi
 echo "🔄 Sourcing updated environment variables..."
 source /etc/environment
 
+npm run migrate
+
 # ✅ Restart PM2 process to apply new environment variables
 echo "🔄 Restarting Node.js app with updated environment variables..."
 

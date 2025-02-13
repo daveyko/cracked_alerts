@@ -10,10 +10,10 @@ exports.shorthands = undefined;
  */
 exports.up = (pgm) => {
     // Add new column
-    pgm.addColumn('transactions', {
+    pgm.addColumn('wallet_scores', {
         profit_per_day: { type: 'numeric', notNull: false, default: 0 }, // New field
     });
-    pgm.addColumn('transactions', {
+    pgm.addColumn('wallet_scores', {
         rank: { type: 'numeric', notNull: false }, // New field
     });
 };
@@ -25,6 +25,6 @@ exports.up = (pgm) => {
  */
 exports.down = (pgm) => {
     // Reverse changes if needed
-    pgm.dropColumn('transactions', 'profit_per_day');
-    pgm.dropColumn('transactions', 'rank');
+    pgm.dropColumn('wallet_scores', 'profit_per_day');
+    pgm.dropColumn('wallet_scores', 'rank');
 };

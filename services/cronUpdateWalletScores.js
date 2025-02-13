@@ -26,7 +26,7 @@ function updateWalletScoresCron() {
         () => {
             refreshWalletScores();
         },
-        200 * 1 * 1000
+        3600 * 1 * 1000
     );
 }
 

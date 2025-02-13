@@ -121,16 +121,17 @@ function transactionAggByWalletTokenMessage(data, title) {
     let message = '';
     const tokenCaToMetadata = {};
     data.forEach((wallet) => {
-        wallet.summaries.forEach((summary) => {
+        //Go in reverse so if there is only 1 summary we get the latest one
+        for (let i = wallet.summaries.length - 1; i >= 0; i--) {
+            const summary = wallet.summaries[i];
             if (!tokenCaToMetadata[summary.altTokenCA]) {
                 tokenCaToMetadata[summary.altTokenCA] = {
                     ...summary.altTokenMetadata,
                     symbol: summary.altTokenSymbol,
                 };
             }
-        });
+        }
     });
-
     Object.entries(tokenCaToMetadata).forEach(([altTokenCA, tokenMetaData]) => {
         message += `<b>${data[0].summaries[0].buySummary.count > 0 ? '🟢🟢🟢 Cracked BUY' : data[0].summaries[0].sellSummary.count > 0 ? '🔴🔴🔴 Cracked SELL' : '🟡🟡🟡 STABLE (probably)'} Swap Detected for: $${tokenMetaData.symbol || 'Unknown'} 💉💉💉</b>
 <b>${title}:</b>
@@ -166,9 +167,9 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
         );
         message += `\n👤 <b>${wallet.walletName}</b>\n`;
         if (wallet.walletScoreData) {
-            message += `\n<b>daily profit: ${formatCompactNumber(wallet.walletScoreData.profitPerDay)}</b>\n`;
-            message += `<b>daily tokens traded: ${Math.round(wallet.walletScoreData.uniqueTokensPerDay)}</b>\n`;
-            message += `<b>rank: ${wallet.walletScoreData.rank}/${WALLET_ADDRESSES.length}}</b>\n`;
+            message += `\nprofit/day: $${formatCompactNumber(wallet.walletScoreData.profitPerDay)}\n`;
+            message += `tokenSwaps/day: ${wallet.walletScoreData.uniqueTokensPerDay.toFixed(2)}\n`;
+            message += `<b>rank: ${wallet.walletScoreData.rank}/${WALLET_ADDRESSES.length}</b>\n`;
         }
         message += `\n<i>Last ${totalTransactionCount} ${totalTransactionCount === 1 ? 'transaction' : 'transactions'}:</i>\n`;
         wallet.summaries.forEach((summary) => {

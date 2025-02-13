@@ -37,7 +37,7 @@ async function computeWalletScores() {
                 profit_per_day: 0,
                 unique_tokens_traded_per_day: 0,
                 wallet_score: 0,
-                ranking: 0,
+                rank: 0,
             };
         }
 
@@ -48,8 +48,6 @@ async function computeWalletScores() {
         walletScores[wallet_address].total_unrealized_profit_usd += unrealized_profit_usd;
         walletScores[wallet_address].unique_tokens_traded.add(alt_token_ca);
     }
-
-    const walletArray = [];
 
     for (const wallet_address in walletScores) {
         const wallet = walletScores[wallet_address];
@@ -65,18 +63,29 @@ async function computeWalletScores() {
             wallet.unique_tokens_traded_per_day > 0
                 ? wallet.profit_per_day / wallet.unique_tokens_traded_per_day
                 : 0;
-
-        walletArray.push({ wallet_address, wallet_score: wallet.wallet_score });
     }
 
-    // **Assign rankings**
+    // Convert object to array for sorting
+    const walletArray = Object.entries(walletScores).map(([wallet_address, data]) => ({
+        wallet_address,
+        ...data,
+    }));
+
+    // **Sort wallets in descending order based on wallet_score**
+    walletArray.sort((a, b) => {
+        // If `profit_per_day` is negative, sort by closest to zero
+        if (a.profit_per_day < 0 && b.profit_per_day < 0) {
+            return Math.abs(a.profit_per_day) - Math.abs(b.profit_per_day); // Sort highest negative last
+        }
+        return b.wallet_score - a.wallet_score; // Default sorting by highest wallet_score
+    });
+
+    // **Assign rankings after sorting**
     let rank = 1;
     for (const wallet of walletArray) {
-        walletScores[wallet.wallet_address].ranking = rank;
+        walletScores[wallet.wallet_address].rank = rank;
         rank++;
     }
-
-    walletArray.sort((a, b) => b.wallet_score - a.wallet_score);
 
     return walletScores;
 }
@@ -126,7 +135,7 @@ async function updateWalletScores() {
 
 async function getWalletScores(walletAddresses) {
     const { rows } = await pool.query(
-        `SELECT wallet_address, unique_tokens_traded_per_day, total_profit, wallet_score 
+        `SELECT wallet_address, unique_tokens_traded_per_day, profit_per_day, rank 
          FROM wallet_scores 
          WHERE wallet_address = ANY($1)`,
         [walletAddresses]
