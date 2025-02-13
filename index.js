@@ -84,7 +84,7 @@ const subscribeToWallet = async (address) => {
                     }, 60000);
 
                     //**CORE LOGIC**: runs the logic of processing per transaction for each wallet
-                    runWalletTransactionPipeline(transaction, address, signature);
+                    runWalletTransactionPipeline(transaction, address);
                 } catch (error) {
                     console.error('Error in subscription handler:', error);
                 }

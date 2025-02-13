@@ -1,5 +1,5 @@
-const PRUNE_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
-const TRANSACTION_EXPIRY = 10 * 60 * 1000; // Transactions older than 10 minutes should be removed
+const PRUNE_INTERVAL = 15 * 60 * 1000;
+const TRANSACTION_EXPIRY = 15 * 60 * 1000;
 
 function pruneOldTransactions(cache) {
     const now = Date.now();

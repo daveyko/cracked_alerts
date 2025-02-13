@@ -1,37 +1,64 @@
-const { detectTokenSwap, tokenSwapMessage } = require('../transformers/tokenSwap');
-const { PORTNOY_WALLET_ADDRESS, VIP_CHAT_ID } = require('../constants/vipChat');
-const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING = 200;
-const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING = 1;
+const {
+    transactionAggByWalletToken,
+    transactionAggByWalletTokenMessage,
+} = require('../transformers/transactionAggByWalletToken');
+const { getWalletScores } = require('../db/walletScores');
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP = 200;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP = 1;
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 25000;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 125;
+const PORTNOY_WALLET_ADDRESS = '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD';
 
-async function transactionAlert(
-    address,
-    signature,
-    rawTransaction,
-    transaction,
-    fetchDexTokenData,
-    postMessage
-) {
-    const { stableTokenAmount, stableTokenSymbol } = transaction;
+async function transactionAlert(transaction, postMessage) {
+    const { stableTokenAmount, stableTokenSymbol, walletAddress, walletName } = transaction;
     if (
         shouldProcessTransactionAlert(stableTokenAmount, stableTokenSymbol) &&
-        address === PORTNOY_WALLET_ADDRESS
+        walletAddress === PORTNOY_WALLET_ADDRESS
     ) {
-        const swapResult = await detectTokenSwap(rawTransaction, address, fetchDexTokenData);
-        const message = tokenSwapMessage(swapResult, signature, address);
+        await sendMessage(
+            `${walletName} WALLET ACTION ALERT!`,
+            process.env.TELEGRAM_CHAT_ID_VIP,
+            transaction,
+            postMessage
+        );
+    } else if (shouldProcessTransactionAlertWhaleBuy(stableTokenAmount, stableTokenSymbol)) {
+        await sendMessage(
+            `${walletName} WALLET WHALE BUY ACTION ALERT!`,
+            process.env.TELEGRAM_CHAT_ID_HIGH_THRESHOLD,
+            transaction,
+            postMessage
+        );
+    }
+}
+
+async function sendMessage(title, chatId, transaction, postMessage) {
+    const agg = await transactionAggByWalletToken([transaction], getWalletScores);
+    if (agg.length > 0) {
+        const message = transactionAggByWalletTokenMessage(agg, title);
         await postMessage(message, {
             parse_mode: 'HTML',
             disable_web_page_preview: true,
-            chatId: VIP_CHAT_ID,
+            chatId,
         });
     }
 }
 
 function shouldProcessTransactionAlert(stableTokenAmount, stableTokenSymbol) {
     if (stableTokenSymbol === 'SOL') {
-        return stableTokenAmount > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING;
+        return stableTokenAmount > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP;
     }
     if (stableTokenSymbol === 'USDC') {
-        return stableTokenAmount > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING;
+        return stableTokenAmount > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP;
+    }
+    return false;
+}
+
+function shouldProcessTransactionAlertWhaleBuy(stableTokenAmount, stableTokenSymbol) {
+    if (stableTokenSymbol === 'SOL') {
+        return stableTokenAmount > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE;
+    }
+    if (stableTokenSymbol === 'USDC') {
+        return stableTokenAmount > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE;
     }
     return false;
 }
