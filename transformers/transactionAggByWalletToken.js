@@ -1,4 +1,5 @@
 const { formatCompactNumber } = require('../utils/format');
+const { WALLET_ADDRESSES } = require('../constants/walletAddresses');
 
 async function transactionAggByWalletToken(transactions, getWalletScores) {
     const groupedData = {};
@@ -8,9 +9,9 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
     const res = await getWalletScores(transactions.map((t) => t.walletAddress));
     res.forEach((r) => {
         walletScoreDataByAddress[r.wallet_address] = {
-            profit: r.total_profit,
+            profitPerDay: r.profit_per_day,
             uniqueTokensPerDay: r.unique_tokens_traded_per_day,
-            score: r.wallet_score,
+            rank: r.rank,
         };
     });
 
@@ -136,15 +137,16 @@ function transactionAggByWalletTokenMessage(data, title) {
 
 <b>Token Information</b>
 Name: ${tokenMetaData.symbol || 'Unknown'}
-Socials: ${!!tokenMetaData.socials
+Socials: ${
+            !!tokenMetaData.socials
                 ? tokenMetaData.socials
-                    ?.map(
-                        (social) =>
-                            `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
-                    )
-                    .join(' | ')
+                      ?.map(
+                          (social) =>
+                              `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
+                      )
+                      .join(' | ')
                 : 'None'
-            }
+        }
 CA: <code>${altTokenCA}</code>
 Market Cap: $${formatCompactNumber(tokenMetaData.marketCap || 0)}
 Price: $${tokenMetaData.price}
@@ -164,11 +166,11 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
         );
         message += `\n👤 <b>${wallet.walletName}</b>\n`;
         if (wallet.walletScoreData) {
-            message += `<b>profit: ${wallet.walletScoreData.profit.toFixed(2)}</b>\n`;
-            message += `<b>daily tokens traded: ${wallet.walletScoreData.uniqueTokensPerDay}</b>\n`;
-            message += `<b>score: ${wallet.walletScoreData.score.toFixed(2)}</b>\n`;
+            message += `\n<b>daily profit: ${formatCompactNumber(wallet.walletScoreData.profitPerDay)}</b>\n`;
+            message += `<b>daily tokens traded: ${Math.round(wallet.walletScoreData.uniqueTokensPerDay)}</b>\n`;
+            message += `<b>rank: ${wallet.walletScoreData.rank}/${WALLET_ADDRESSES.length}}</b>\n`;
         }
-        message += `<i>Last ${totalTransactionCount} ${totalTransactionCount === 1 ? 'transaction' : 'transactions'}:</i>\n`;
+        message += `\n<i>Last ${totalTransactionCount} ${totalTransactionCount === 1 ? 'transaction' : 'transactions'}:</i>\n`;
         wallet.summaries.forEach((summary) => {
             if (summary.buySummary.count > 0) {
                 message += `🟢 ${Math.abs(summary.buySummary.totalNonAltAmount).toFixed(2)} ${summary.buySummary.totalNonAltSymbol} → ${formatCompactNumber(Math.abs(summary.buySummary.totalAltAmount))} <a href="https://dexscreener.com/solana/${summary.altTokenCA}">${summary.altTokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
@@ -186,7 +188,7 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
     message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${altTokenCA}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${altTokenCA}?handle=66478257f2babf7339037">Photon</a> | <a href="https://neo.bullx.io/terminal?chainId=1399811149&address=${altTokenCA}">BullX</a>`;
     message += `\n<b>🤖 Tg Bots:</b> <a href="https://t.me/achilles_trojanbot?start=r-justinrh-${altTokenCA}">Trojan</a>`;
     message += `\n<b>🔍 Explorer:</b> <a href="https://solscan.io/token/${altTokenCA}">View Token</a>`;
-    message += `\n<b>📝 CA:</b> <code>${altTokenCA}</code>`
+    message += `\n<b>📝 CA:</b> <code>${altTokenCA}</code>`;
     return message;
 }
 
