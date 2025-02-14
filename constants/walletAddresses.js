@@ -87,9 +87,9 @@ const WALLET_NAMES = {
         'Pranav DD #19 (Swing trader trading on mid and high caps (finally))',
     '6S8GezkxYUfZy9JPtYnanbcZTMB87Wjt1qx3c6ELajKC': 'Pranav DD #20 (good mix)',
     '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD': 'PORTNOY',
-    'HABhDh9zrzf8mA4SBo1yro8M6AirH2hZdLNPpuvMH6iA': 'Bugha CT',
-    'HYWo71Wk9PNDe5sBaRKazPnVyGnQDiwgXCFKvgAQ1ENp': 'Ansem Alt Maybe',
-    'DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm': 'Gake (SMsol5/50%insidery)',
+    HABhDh9zrzf8mA4SBo1yro8M6AirH2hZdLNPpuvMH6iA: 'Bugha CT',
+    HYWo71Wk9PNDe5sBaRKazPnVyGnQDiwgXCFKvgAQ1ENp: 'Ansem Alt Maybe',
+    DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm: 'Gake (SMsol5/50%insidery)',
     '3tc4BVAdzjr1JpeZu6NAjLHyp4kK3iic7TexMBYGJ4Xk': 'Devvy',
 };
 
