@@ -80,7 +80,7 @@ async function sendMessage(
 ) {
     const agg = await transactionAggByWalletToken(filteredTransactions, getWalletScores);
     if (agg.length > 0) {
-        const message = transactionAggByWalletTokenMessage(agg, `${size} WALLET ACTION ALERT!`);
+        const message = transactionAggByWalletTokenMessage(agg, `${size} BUNDLED`);
         await postMessage(message, { parse_mode: 'HTML', disable_web_page_preview: true, chatId });
         tokenEntry.uniqueWallets.forEach((wallet) => tokenEntry.walletsAlertSent.add(wallet));
     }

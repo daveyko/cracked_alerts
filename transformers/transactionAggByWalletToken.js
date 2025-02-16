@@ -21,6 +21,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             altTokenCA,
             altTokenMetadata,
             altTokenSymbol,
+            blockTime,
             stableTokenAmount,
             stableTokenSymbol,
             transactionType,
@@ -42,6 +43,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
                 altTokenCA,
                 altTokenSymbol,
                 altTokenMetadata,
+                blockTime,
                 buys: {
                     totalAltAmount: 0,
                     totalSpent: 0,
@@ -80,66 +82,69 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             entry.sells.weightedMarketCapAmount += stableTokenAmount;
             entry.sells.count += 1;
         }
+        // update with the latest txn metadata since early might be missing MC
+        if (entry.blockTime < blockTime) {
+            entry.blockTime = blockTime;
+            entry.altTokenMetadata = altTokenMetadata;
+        }
     });
 
     // Transform grouped data into a readable array format
-    return Object.entries(groupedData)
-        .map(([walletAddress, tokens]) => ({
-            walletAddress,
-            walletName: walletNameByAddress[walletAddress],
-            walletScoreData: walletScoreDataByAddress[walletAddress],
-            summaries: Object.entries(tokens).map(([altTokenCA, data]) => {
-                const avgBuyMarketCap = data.buys.weightedMarketCapAmount
-                    ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount
-                    : 0;
-                const avgSellMarketCap = data.sells.weightedMarketCapAmount
-                    ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount
-                    : 0;
-                return {
-                    altTokenCA,
-                    altTokenSymbol: data.altTokenSymbol,
-                    altTokenMetadata: data.altTokenMetadata,
-                    buySummary: {
-                        totalAltAmount: data.buys.totalAltAmount,
-                        totalNonAltAmount: data.buys.totalSpent,
-                        totalNonAltSymbol: data.buys.currency,
-                        avgMarketCap: avgBuyMarketCap,
-                        count: data.buys.count,
-                    },
-                    sellSummary: {
-                        totalAltAmount: data.sells.totalAltAmount,
-                        totalNonAltAmount: data.sells.totalReceived,
-                        totalNonAltSymbol: data.sells.currency,
-                        avgMarketCap: avgSellMarketCap,
-                        count: data.sells.count,
-                    },
-                };
-            }),
-        }))
-        .sort((a, b) => b.walletScoreData.rank - a.walletScoreData.rank);
+    return Object.entries(groupedData).map(([walletAddress, tokens]) => ({
+        walletAddress,
+        walletName: walletNameByAddress[walletAddress],
+        walletScoreData: walletScoreDataByAddress[walletAddress],
+        summaries: Object.entries(tokens).map(([altTokenCA, data]) => {
+            const avgBuyMarketCap = data.buys.weightedMarketCapAmount
+                ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount
+                : 0;
+            const avgSellMarketCap = data.sells.weightedMarketCapAmount
+                ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount
+                : 0;
+            return {
+                altTokenCA,
+                altTokenSymbol: data.altTokenSymbol,
+                altTokenMetadata: data.altTokenMetadata,
+                buySummary: {
+                    totalAltAmount: data.buys.totalAltAmount,
+                    totalNonAltAmount: data.buys.totalSpent,
+                    totalNonAltSymbol: data.buys.currency,
+                    avgMarketCap: avgBuyMarketCap,
+                    count: data.buys.count,
+                },
+                latestBuyTime: data.blockTime,
+                sellSummary: {
+                    totalAltAmount: data.sells.totalAltAmount,
+                    totalNonAltAmount: data.sells.totalReceived,
+                    totalNonAltSymbol: data.sells.currency,
+                    avgMarketCap: avgSellMarketCap,
+                    count: data.sells.count,
+                },
+            };
+        }),
+    }));
 }
 
 function transactionAggByWalletTokenMessage(data, title) {
     let message = '';
     const tokenCaToMetadata = {};
-    data.forEach((wallet) => {
-        //Go in reverse so if there is only 1 summary we get the latest one
-        for (let i = wallet.summaries.length - 1; i >= 0; i--) {
-            const summary = wallet.summaries[i];
+    for (let i = data.length - 1; i >= 0; i--) {
+        const wallet = data[i];
+        const summariesLatestFirst = wallet.summaries.sort(
+            (a, b) => b.latestBuyTime - a.latestBuyTime
+        );
+        summariesLatestFirst.forEach((summary) => {
             if (!tokenCaToMetadata[summary.altTokenCA]) {
                 tokenCaToMetadata[summary.altTokenCA] = {
                     ...summary.altTokenMetadata,
                     symbol: summary.altTokenSymbol,
                 };
             }
-        }
-    });
-    Object.entries(tokenCaToMetadata).forEach(([altTokenCA, tokenMetaData]) => {
-        message += `<b>${data[0].summaries[0].buySummary.count > 0 ? '🟢🟢🟢 Cracked BUY' : data[0].summaries[0].sellSummary.count > 0 ? '🔴🔴🔴 Cracked SELL' : '🟡🟡🟡 STABLE (probably)'} Swap Detected for: $${tokenMetaData.symbol || 'Unknown'} 💉💉💉</b>
-<b>${title}:</b>
-
+        });
+    }
+    Object.entries(tokenCaToMetadata).forEach(([_, tokenMetaData]) => {
+        message += `${data[0].summaries[0].buySummary.count > 0 ? `🟢🟢🟢 <b>${title}</b> BUY` : data[0].summaries[0].sellSummary.count > 0 ? `🔴🔴🔴 <b>${title}</b> SELL` : '🟡🟡🟡 STABLE (probably)'} Swap Detected for: $${tokenMetaData.symbol || 'Unknown'} 💉💉💉
 <b>Token Information</b>
-Name: ${tokenMetaData.symbol || 'Unknown'}
 Socials: ${
             !!tokenMetaData.socials
                 ? tokenMetaData.socials
@@ -150,19 +155,16 @@ Socials: ${
                       .join(' | ')
                 : 'None'
         }
-CA: <code>${altTokenCA}</code>
 Market Cap: $${formatCompactNumber(tokenMetaData.marketCap || 0)}
-Price: $${tokenMetaData.price}
 5 min txns (buy / sell): ${tokenMetaData.fiveMinTxn?.buys || 0} / ${tokenMetaData.fiveMinTxn?.sells || 0}
-    
-Security Information
 Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaData.pairCreatedAt) / (1000 * 60)) : 'Unknown'}m
-    
     --------------------------------------------------------------------
-
             `;
     });
-    data.forEach((wallet) => {
+    const sortedByWalletRank = data
+        .slice()
+        .sort((a, b) => a.walletScoreData.rank - b.walletScoreData.rank);
+    sortedByWalletRank.forEach((wallet) => {
         const totalTransactionCount = wallet.summaries.reduce(
             (tokenSum, summary) => tokenSum + summary.buySummary.count + summary.sellSummary.count,
             0
