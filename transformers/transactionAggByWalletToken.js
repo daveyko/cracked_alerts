@@ -83,38 +83,40 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
     });
 
     // Transform grouped data into a readable array format
-    return Object.entries(groupedData).map(([walletAddress, tokens]) => ({
-        walletAddress,
-        walletName: walletNameByAddress[walletAddress],
-        walletScoreData: walletScoreDataByAddress[walletAddress],
-        summaries: Object.entries(tokens).map(([altTokenCA, data]) => {
-            const avgBuyMarketCap = data.buys.weightedMarketCapAmount
-                ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount
-                : 0;
-            const avgSellMarketCap = data.sells.weightedMarketCapAmount
-                ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount
-                : 0;
-            return {
-                altTokenCA,
-                altTokenSymbol: data.altTokenSymbol,
-                altTokenMetadata: data.altTokenMetadata,
-                buySummary: {
-                    totalAltAmount: data.buys.totalAltAmount,
-                    totalNonAltAmount: data.buys.totalSpent,
-                    totalNonAltSymbol: data.buys.currency,
-                    avgMarketCap: avgBuyMarketCap,
-                    count: data.buys.count,
-                },
-                sellSummary: {
-                    totalAltAmount: data.sells.totalAltAmount,
-                    totalNonAltAmount: data.sells.totalReceived,
-                    totalNonAltSymbol: data.sells.currency,
-                    avgMarketCap: avgSellMarketCap,
-                    count: data.sells.count,
-                },
-            };
-        }),
-    }));
+    return Object.entries(groupedData)
+        .map(([walletAddress, tokens]) => ({
+            walletAddress,
+            walletName: walletNameByAddress[walletAddress],
+            walletScoreData: walletScoreDataByAddress[walletAddress],
+            summaries: Object.entries(tokens).map(([altTokenCA, data]) => {
+                const avgBuyMarketCap = data.buys.weightedMarketCapAmount
+                    ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount
+                    : 0;
+                const avgSellMarketCap = data.sells.weightedMarketCapAmount
+                    ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount
+                    : 0;
+                return {
+                    altTokenCA,
+                    altTokenSymbol: data.altTokenSymbol,
+                    altTokenMetadata: data.altTokenMetadata,
+                    buySummary: {
+                        totalAltAmount: data.buys.totalAltAmount,
+                        totalNonAltAmount: data.buys.totalSpent,
+                        totalNonAltSymbol: data.buys.currency,
+                        avgMarketCap: avgBuyMarketCap,
+                        count: data.buys.count,
+                    },
+                    sellSummary: {
+                        totalAltAmount: data.sells.totalAltAmount,
+                        totalNonAltAmount: data.sells.totalReceived,
+                        totalNonAltSymbol: data.sells.currency,
+                        avgMarketCap: avgSellMarketCap,
+                        count: data.sells.count,
+                    },
+                };
+            }),
+        }))
+        .sort((a, b) => b.walletScoreData.rank - a.walletScoreData.rank);
 }
 
 function transactionAggByWalletTokenMessage(data, title) {
