@@ -8,23 +8,22 @@ const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP = 1;
 const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 20000;
 const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 100;
 const PORTNOY_WALLET_ADDRESS = '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD';
-const LEBRON_WALLET_ADDRESS = 'G5nxEXuFMfV74DSnsrSatqCW32F34XUnBeq3PfDS7w5E';
 
 async function transactionAlert(transaction, postMessage) {
     const { stableTokenAmount, stableTokenSymbol, walletAddress, walletName } = transaction;
     if (
         shouldProcessTransactionAlert(stableTokenAmount, stableTokenSymbol) &&
-        [PORTNOY_WALLET_ADDRESS, LEBRON_WALLET_ADDRESS].includes(walletAddress)
+        [PORTNOY_WALLET_ADDRESS].includes(walletAddress)
     ) {
         await sendMessage(
-            `${walletName} WALLET ACTION ALERT!`,
+            `${walletName} VIP`,
             process.env.TELEGRAM_CHAT_ID_VIP,
             transaction,
             postMessage
         );
     } else if (shouldProcessTransactionAlertWhaleBuy(stableTokenAmount, stableTokenSymbol)) {
         await sendMessage(
-            `${walletName} WALLET WHALE BUY ACTION ALERT!`,
+            `${walletName} SIZED`,
             process.env.TELEGRAM_CHAT_ID_HIGH_THRESHOLD,
             transaction,
             postMessage
