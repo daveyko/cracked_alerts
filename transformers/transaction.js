@@ -43,11 +43,16 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
     if (spentTokens.length && receivedTokens.length) {
         const spentToken = spentTokens[0];
         const receivedToken = receivedTokens[0];
+        //Sometimes seeing transactions of USDC to USDC which we don't care about
+        if (spentToken.symbol === receivedToken.symbol) {
+            return null;
+        }
         // Determine which token to show in title (non-SOL/USDC token)
         const titleToken =
             [spentToken, receivedToken].find(
                 (token) => token.symbol !== 'SOL' && token.symbol !== 'USDC'
             ) || receivedToken; // Fallback to receivedToken if both are SOL/USDC
+        const altTokenSymbol = titleToken.symbol;
         const altTokenCA = titleToken.info?.address || titleToken.address;
         const altTokenName = titleToken.info?.name || 'Unknown';
         const altTokenPrice = titleToken.info?.price;
@@ -66,7 +71,7 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
         return {
             altTokenCA,
             altTokenName,
-            altTokenSymbol: titleToken.symbol,
+            altTokenSymbol,
             altTokenPrice,
             altTokenAmount,
             altTokenMetadata: {
