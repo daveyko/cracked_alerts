@@ -2,8 +2,8 @@ const pool = require('./index');
 
 async function computeWalletScores() {
     const { rows: positions } = await pool.query(`
-        SELECT wallet_address, alt_token_ca, realized_profit_usd, unrealized_profit_usd, total_bought_quantity, total_sold_quantity
-        FROM wallet_positions
+        SELECT wallet_address, alt_token_ca, realized_profit_usd, unrealized_profit_usd, total_bought_quantity, total_sold_quantity, hold_duration_seconds
+        FROM wallet_positions WHERE (total_bought_cost_usd >= 200 OR total_sold_value_usd >= 200)
     `);
 
     const walletScores = {};
@@ -14,8 +14,7 @@ async function computeWalletScores() {
             alt_token_ca,
             realized_profit_usd,
             unrealized_profit_usd,
-            total_bought_quantity,
-            total_sold_quantity,
+            hold_duration_seconds,
         } = row;
 
         if (!walletScores[wallet_address]) {
@@ -37,16 +36,21 @@ async function computeWalletScores() {
                 profit_per_day: 0,
                 unique_tokens_traded_per_day: 0,
                 wallet_score: 0,
+                avg_hold_duration_seconds: 0, // New field to track avg hold duration
+                hold_entries: 0, // Tracks the number of tokens contributing to avg_hold_duration_seconds
                 rank: 0,
             };
         }
 
-        // Exclude tokens with negative holdings
-        if (total_bought_quantity < total_sold_quantity) continue;
-
         walletScores[wallet_address].total_realized_profit_usd += realized_profit_usd;
         walletScores[wallet_address].total_unrealized_profit_usd += unrealized_profit_usd;
         walletScores[wallet_address].unique_tokens_traded.add(alt_token_ca);
+
+        // Only count valid hold durations (ignore null values)
+        if (hold_duration_seconds !== null) {
+            walletScores[wallet_address].avg_hold_duration_seconds += hold_duration_seconds;
+            walletScores[wallet_address].hold_entries += 1;
+        }
     }
 
     for (const wallet_address in walletScores) {
@@ -59,6 +63,11 @@ async function computeWalletScores() {
             (wallet.total_realized_profit_usd + wallet.total_unrealized_profit_usd) /
             wallet.days_tracked;
 
+        // Compute avg hold duration (if at least one entry exists)
+        wallet.avg_hold_duration_seconds =
+            wallet.hold_entries > 0 ? wallet.avg_hold_duration_seconds / wallet.hold_entries : 0;
+
+        // Compute wallet score
         wallet.wallet_score =
             wallet.unique_tokens_traded_per_day > 0
                 ? wallet.profit_per_day / wallet.unique_tokens_traded_per_day
@@ -92,6 +101,7 @@ async function computeWalletScores() {
 
 async function updateWalletScores() {
     const walletScores = await computeWalletScores();
+
     for (const [wallet_address, data] of Object.entries(walletScores)) {
         const {
             total_realized_profit_usd,
@@ -101,12 +111,13 @@ async function updateWalletScores() {
             profit_per_day,
             wallet_score,
             first_tracked,
+            avg_hold_duration_seconds, // New field
             rank,
         } = data;
 
         await pool.query(
-            `INSERT INTO wallet_scores (wallet_address, total_realized_profit, total_unrealized_profit, total_profit, unique_tokens_traded, unique_tokens_traded_per_day, profit_per_day, wallet_score, rank, first_tracked, last_updated)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, EXTRACT(EPOCH FROM NOW()))
+            `INSERT INTO wallet_scores (wallet_address, total_realized_profit, total_unrealized_profit, total_profit, unique_tokens_traded, unique_tokens_traded_per_day, profit_per_day, avg_hold_duration_seconds, wallet_score, rank, first_tracked, last_updated)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, EXTRACT(EPOCH FROM NOW()))
              ON CONFLICT (wallet_address) DO UPDATE 
              SET total_realized_profit = EXCLUDED.total_realized_profit,
                  total_unrealized_profit = EXCLUDED.total_unrealized_profit,
@@ -114,6 +125,7 @@ async function updateWalletScores() {
                  unique_tokens_traded = EXCLUDED.unique_tokens_traded,
                  unique_tokens_traded_per_day = EXCLUDED.unique_tokens_traded_per_day,
                  profit_per_day = EXCLUDED.profit_per_day,
+                 avg_hold_duration_seconds = EXCLUDED.avg_hold_duration_seconds, 
                  wallet_score = EXCLUDED.wallet_score,
                  rank = EXCLUDED.rank,
                  last_updated = EXTRACT(EPOCH FROM NOW());`,
@@ -125,8 +137,9 @@ async function updateWalletScores() {
                 unique_tokens_traded,
                 unique_tokens_traded_per_day,
                 profit_per_day,
+                avg_hold_duration_seconds, // Include avg hold duration in DB
                 wallet_score,
-                rank, // New rank field
+                rank,
                 first_tracked,
             ]
         );
