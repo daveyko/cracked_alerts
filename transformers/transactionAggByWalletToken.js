@@ -173,11 +173,11 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
         );
         message += `\n👤 <b>${wallet.walletName}</b>\n`;
         if (wallet.walletScoreData) {
-            message += `\nprofit/day: $${formatCompactNumber(wallet.walletScoreData.profitPerDay)}\n`;
+            message += `\n<b>rank: ${wallet.walletScoreData.rank}/${WALLET_ADDRESSES.length}</b>\n`;
+            message += `profit/day: $${formatCompactNumber(wallet.walletScoreData.profitPerDay)}\n`;
             message += `tokenSwaps/day: ${wallet.walletScoreData.uniqueTokensPerDay.toFixed(2)}\n`;
-            message += `<b>rank: ${wallet.walletScoreData.rank}/${WALLET_ADDRESSES.length}</b>\n`;
             if (wallet.walletScoreData.avgHoldDurationSeconds) {
-                message += `<b>holdDuration/token: ${formatTimeFromSeconds(formatTimeFromSeconds(wallet.walletScoreData.avgHoldDurationSeconds))}</b>\n`;
+                message += `avgHoldDuration: ${formatTimeFromSeconds(wallet.walletScoreData.avgHoldDurationSeconds)}\n`;
             }
         }
         message += `\n<i>Last ${totalTransactionCount} ${totalTransactionCount === 1 ? 'transaction' : 'transactions'}:</i>\n`;

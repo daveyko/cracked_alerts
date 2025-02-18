@@ -10,7 +10,7 @@ function aggregateTransactions(transactions) {
             type,
             alt_token_quantity,
             alt_token_price,
-            blockTime, // Timestamp in seconds since epoch
+            timestamp, // Timestamp in seconds since epoch
         } = tx;
 
         const key = `${wallet_address}-${alt_token_ca}`;
@@ -35,9 +35,9 @@ function aggregateTransactions(transactions) {
             // Track the earliest buy timestamp in this batch
             if (
                 aggregated[key].first_buy_timestamp === null ||
-                blockTime < aggregated[key].first_buy_timestamp
+                timestamp < aggregated[key].first_buy_timestamp
             ) {
-                aggregated[key].first_buy_timestamp = blockTime;
+                aggregated[key].first_buy_timestamp = timestamp;
             }
         } else if (type === 'SELL') {
             aggregated[key].total_sold_quantity += alt_token_quantity;
@@ -46,9 +46,9 @@ function aggregateTransactions(transactions) {
             // Track the earliest sell timestamp in this batch
             if (
                 aggregated[key].first_sell_timestamp === null ||
-                blockTime < aggregated[key].first_sell_timestamp
+                timestamp < aggregated[key].first_sell_timestamp
             ) {
-                aggregated[key].first_sell_timestamp = blockTime;
+                aggregated[key].first_sell_timestamp = timestamp;
             }
         }
     }

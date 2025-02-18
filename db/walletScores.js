@@ -65,7 +65,9 @@ async function computeWalletScores() {
 
         // Compute avg hold duration (if at least one entry exists)
         wallet.avg_hold_duration_seconds =
-            wallet.hold_entries > 0 ? wallet.avg_hold_duration_seconds / wallet.hold_entries : 0;
+            wallet.hold_entries > 0
+                ? Math.round(wallet.avg_hold_duration_seconds / wallet.hold_entries)
+                : 0;
 
         // Compute wallet score
         wallet.wallet_score =
