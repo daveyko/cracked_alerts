@@ -1,4 +1,5 @@
 const { formatCompactNumber } = require('../utils/format');
+const { formatTimeFromSeconds } = require('../utils/format');
 const { WALLET_ADDRESSES } = require('../constants/walletAddresses');
 
 async function transactionAggByWalletToken(transactions, getWalletScores) {
@@ -12,6 +13,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             profitPerDay: r.profit_per_day,
             uniqueTokensPerDay: r.unique_tokens_traded_per_day,
             rank: r.rank,
+            avgHoldDurationSeconds: r.avg_hold_duration_seconds,
         };
     });
 
@@ -174,6 +176,9 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
             message += `\nprofit/day: $${formatCompactNumber(wallet.walletScoreData.profitPerDay)}\n`;
             message += `tokenSwaps/day: ${wallet.walletScoreData.uniqueTokensPerDay.toFixed(2)}\n`;
             message += `<b>rank: ${wallet.walletScoreData.rank}/${WALLET_ADDRESSES.length}</b>\n`;
+            if (wallet.walletScoreData.avgHoldDurationSeconds) {
+                message += `<b>holdDuration/token: ${formatTimeFromSeconds(formatTimeFromSeconds(wallet.walletScoreData.avgHoldDurationSeconds))}</b>\n`;
+            }
         }
         message += `\n<i>Last ${totalTransactionCount} ${totalTransactionCount === 1 ? 'transaction' : 'transactions'}:</i>\n`;
         wallet.summaries.forEach((summary) => {
