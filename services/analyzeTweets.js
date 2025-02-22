@@ -1,36 +1,37 @@
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 
 async function analyzeTweets(tweets, contractAddress, tokenSymbol) {
-    const configuration = new Configuration({
+    const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
-    const openai = new OpenAIApi(configuration);
 
     const tweetTexts = tweets.map(tweet => tweet.text);
     const combinedText = tweetTexts.join(" ");
 
     const narrativePrompt = `
-As a crypto analyst, evaluate the following tweets about the Solana token ${tokenSymbol} (${contractAddress}).
+Analyze these tweets about the Solana token ${tokenSymbol} (${contractAddress}) and provide a concise analysis in exactly this format:
 
-Context:
-Crypto tokens/projects typically succeed through either:
-1. Meme/Social value (influencers, trends, viral potential, current events)
-2. Utility value (real-world use cases, technology, innovation)
+<b>Top 10 tweets analysis:</b>
+• <b>Token Name Analysis:</b> [Name meaning and cultural references]
+• <b>Core Purpose:</b> [If this is a utility project, provide 1-2 sentences on main project goal. If it's a meme project, provide 1-2 sentences on the meme and who mentioned it.]
+• <b>Main Narrative:</b> [Key aspects of token distribution and economic model]
+• <b>Team/Creator Background:</b> [Team info from tweets]
+• <b>Utility Value:</b>
+  - Tech: [Key technical features]
+  - Project Fundamentals: [Current stage and focus]
 
-Analyze these tweets and provide:
--Token Analysis:
-   - Primary Category: [Meme/Utility/Hybrid]
-   - Core Purpose: [Brief description]
-   - Team/Creator Background: [If mentioned]
-
-Raw Tweet Data:
+Raw tweet data:
 ${combinedText}
 
-Provide a concise, structured analysis following the above format. If certain information is not available from the tweets, explicitly state that.
+Important:
+- Use ONLY the format above
+- Be direct and concise
+- Skip sections with no information rather than explaining why
+- Do not include disclaimers or caveats
 `;
 
     try {
-        const response = await openai.createChatCompletion({
+        const response = await openai.chat.completions.create({
             model: "gpt-4-turbo-preview",
             messages: [
                 {
@@ -42,10 +43,10 @@ Provide a concise, structured analysis following the above format. If certain in
                     content: narrativePrompt
                 }
             ],
-            max_tokens: 1000
+            max_tokens: 500
         });
 
-        return response.data.choices[0].message.content;
+        return response.choices[0].message.content;
     } catch (error) {
         console.error("Error analyzing tweets:", error);
         return "Error analyzing tweets";

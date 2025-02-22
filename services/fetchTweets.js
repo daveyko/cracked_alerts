@@ -1,6 +1,7 @@
 async function fetchTweets(username) {
     const query = `from:${username}`;
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=5&tweet.fields=public_metrics,created_at&user.fields=public_metrics&expansions=author_id&sort_order=relevancy`;
+    // api requires max_results to be > 10
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=public_metrics,created_at&user.fields=public_metrics&expansions=author_id&sort_order=relevancy`;
 
     try {
         const response = await fetch(url, {

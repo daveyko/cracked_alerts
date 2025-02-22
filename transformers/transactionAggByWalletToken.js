@@ -152,7 +152,7 @@ Price: $${tokenMetaData.price}
 Security Information
 Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaData.pairCreatedAt) / (1000 * 60)) : 'Unknown'}m
     
-    --------------------------------------------------------------------
+--------------------------------------------------------------------
 
             `;
     });
@@ -182,7 +182,7 @@ Token Age: ${tokenMetaData.pairCreatedAt ? Math.floor((Date.now() - tokenMetaDat
     const altTokenCA = Object.keys(tokenCaToMetadata)[0];
 
     message += `\n<b>Quick Links:</b>\n`;
-    message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${altTokenCA}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${altTokenCA}?handle=66478257f2babf7339037">Photon</a> | <a href="https://neo.bullx.io/terminal?chainId=1399811149&address=${altTokenCA}">BullX</a>`;
+    message += `\n<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${altTokenCA}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${altTokenCA}?handle=66478257f2babf7339037">Photon</a> | <a href="https://neo.bullx.io/terminal?chainId=1399811149&address=${altTokenCA}">BullX</a> | <a href="https://axiom.trade/meme/${altTokenCA}">Axiom</a>`;
     message += `\n<b>🤖 Tg Bots:</b> <a href="https://t.me/achilles_trojanbot?start=r-justinrh-${altTokenCA}">Trojan</a>`;
     message += `\n<b>🔍 Explorer:</b> <a href="https://solscan.io/token/${altTokenCA}">View Token</a>`;
 
