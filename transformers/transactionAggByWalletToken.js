@@ -39,10 +39,9 @@ function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTi
     return entry;
 }
 
-// Helper to update entry for a transaction, with null check
 function updateEntry(entry, type, altAmount, nonAltAmount, marketCap, tx) {
     if (!entry) {
-        return; // Safely skip if entry is null (e.g., stablecoin)
+        return;
     }
     const isBuy = type === 'buy';
     const target = isBuy ? entry.buys : entry.sells;
@@ -51,11 +50,11 @@ function updateEntry(entry, type, altAmount, nonAltAmount, marketCap, tx) {
         target.totalSpent += nonAltAmount;
     } else {
         target.totalReceived += nonAltAmount;
-        target.weightedMarketCapSum += marketCap * nonAltAmount;
-        target.weightedMarketCapAmount += nonAltAmount;
-        target.count++;
-        target.transactions.push(tx);
     }
+    target.weightedMarketCapSum += marketCap * nonAltAmount;
+    target.weightedMarketCapAmount += nonAltAmount;
+    target.count++;
+    target.transactions.push(tx);
 }
 
 async function transactionAggByWalletToken(transactions, getWalletScores) {
@@ -64,7 +63,6 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
     const walletScores = {};
     const tokenCounts = {};
 
-    // Fetch wallet scores once
     const scores = await getWalletScores(transactions.map((t) => t.walletAddress));
     scores.forEach((r) => {
         walletScores[r.wallet_address] = {
@@ -75,7 +73,6 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
         };
     });
 
-    // Single pass: Aggregate counts and process transactions
     transactions.forEach((tx) => {
         if (isStableCoinTransaction(tx)) {
             return;
@@ -98,12 +95,10 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
 
         walletNames[walletAddress] = walletName;
 
-        // Initialize token counts
         [receivedTokenCA, spentTokenCA].forEach((ca) => {
             tokenCounts[ca] = tokenCounts[ca] || { buys: 0, sells: 0, swapBuys: 0, swapSells: 0 };
         });
 
-        // Update counts
         if (transactionType === 'BUY') {
             tokenCounts[receivedTokenCA].buys++;
         } else if (transactionType === 'SELL') {
@@ -113,7 +108,6 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             tokenCounts[spentTokenCA].swapSells++;
         }
 
-        // Get token entries
         const receivedEntry = !isStableCoin(receivedTokenCA, receivedTokenSymbol)
             ? getTokenEntry(
                   groupedData,
@@ -138,7 +132,6 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
         const receivedMarketCap = receivedTokenMetadata?.marketCap || 0;
         const spentMarketCap = spentTokenMetadata?.marketCap || 0;
 
-        // Process transaction
         if (transactionType === 'BUY') {
             updateEntry(
                 receivedEntry,
@@ -202,7 +195,6 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
         }
     });
 
-    // Transform to output format
     return Object.entries(groupedData).map(([walletAddress, tokens]) => ({
         walletAddress,
         walletName: walletNames[walletAddress],
@@ -332,7 +324,7 @@ Token Age: ${
                 const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
                 if (!displayedTxns.has(txnKey)) {
                     const emoji = txn.transactionType === 'BUY' ? '🟢' : '🟡'; // 🟡 for SWAP categorized as BUY
-                    message += `${emoji} ${formatCompactNumber(txn.spentTokenAmount)} ${txn.spentTokenSymbol} → ${formatCompactNumber(txn.receivedTokenAmount)} ${txn.receivedTokenSymbol}\n`;
+                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} ${txn.spentTokenSymbol} → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} <a href="https://dexscreener.com/solana/${summary.altTokenCA}">${txn.receivedTokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
                     displayedTxns.add(txnKey);
                 }
             });
@@ -341,7 +333,7 @@ Token Age: ${
                 const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
                 if (!displayedTxns.has(txnKey)) {
                     const emoji = txn.transactionType === 'SELL' ? '🔴' : '🟡'; // 🟡 for SWAP categorized as SELL
-                    message += `${emoji} ${formatCompactNumber(txn.spentTokenAmount)} ${txn.spentTokenSymbol} → ${formatCompactNumber(txn.receivedTokenAmount)} ${txn.receivedTokenSymbol}\n`;
+                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} <a href="https://dexscreener.com/solana/${summary.altTokenCA}">${txn.spentTokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} ${txn.receivedTokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
                     displayedTxns.add(txnKey);
                 }
             });
