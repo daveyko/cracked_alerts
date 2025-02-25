@@ -9,43 +9,24 @@ async function getRecentTransactions() {
     return rows;
 }
 
-// {
-//     altTokenCA,
-//     altTokenName,
-//     altTokenSymbol: titleToken.symbol,
-//     altTokenPrice,
-//     altTokenAmount,
-//     altTokenMetadata: {
-//         fiveMinTxn: titleToken.info?.["5mtxn"],
-//         fiveMinVol: titleToken.info?.["5mvol"],
-//         marketCap: titleToken.info?.marketcap,
-//         pairCreatedAt: titleToken.info?.pairCreatedAt,
-//         price: titleToken.info?.price || 0,
-//         socials: titleToken.info?.socials || null,
-//         website: titleToken.info?.website || null,
-//     },
-//     blockTime: rawTransaction.blockTime ??  Date().now(),
-//     stableTokenAmount,
-//     stableTokenSymbol,
-//     transactionType,
-//     walletAddress,
-//     walletName,
-// }
-
 async function insertTransactions(transactions) {
     if (transactions.length === 0) return;
 
     const query = `
     INSERT INTO transactions (
-        wallet_address, alt_token_ca, alt_token_quantity, alt_token_symbol, 
-        alt_token_marketcap, alt_token_price, type, stable_token_symbol, 
-        stable_token_quantity, timestamp
+        wallet_address, type, timestamp,
+        received_token_ca, received_token_quantity, received_token_symbol,
+        received_token_marketcap, received_token_price,
+        spent_token_ca, spent_token_quantity, spent_token_symbol,
+        spent_token_marketcap, spent_token_price
     ) VALUES ${transactions
         .map(
             (_, i) =>
-                `($${i * 10 + 1}, $${i * 10 + 2}, $${i * 10 + 3}, $${i * 10 + 4}, 
-        $${i * 10 + 5}, $${i * 10 + 6}, $${i * 10 + 7}, $${i * 10 + 8}, 
-        $${i * 10 + 9}, $${i * 10 + 10})`
+                `($${i * 13 + 1}, $${i * 13 + 2}, $${i * 13 + 3}, 
+                  $${i * 13 + 4}, $${i * 13 + 5}, $${i * 13 + 6}, 
+                  $${i * 13 + 7}, $${i * 13 + 8}, 
+                  $${i * 13 + 9}, $${i * 13 + 10}, $${i * 13 + 11}, 
+                  $${i * 13 + 12}, $${i * 13 + 13})`
         )
         .join(',')}
     RETURNING id;
@@ -53,15 +34,20 @@ async function insertTransactions(transactions) {
 
     const values = transactions.flatMap((transaction) => [
         transaction.walletAddress, // wallet_address
-        transaction.altTokenCA, // alt_token_ca
-        transaction.altTokenAmount, // alt_token_quantity
-        transaction.altTokenSymbol, // alt_token_symbol
-        transaction.altTokenMetadata.marketCap || 0, // alt_token_marketcap
-        transaction.altTokenPrice, // alt_token_price
-        transaction.transactionType, // type ('BUY' or 'SELL')
-        transaction.stableTokenSymbol, // stable_token_symbol
-        transaction.stableTokenAmount, // stable_token_quantity
+        transaction.transactionType, // type ('BUY', 'SELL', or 'SWAP')
         transaction.blockTime || Math.floor(Date.now() / 1000), // timestamp in Unix seconds
+
+        transaction.receivedTokenCA, // received_token_ca
+        transaction.receivedTokenAmount, // received_token_quantity
+        transaction.receivedTokenSymbol, // received_token_symbol
+        transaction.receivedTokenMetadata?.marketCap || 0, // received_token_marketcap
+        transaction.receivedTokenPrice, // received_token_price
+
+        transaction.spentTokenCA, // spent_token_ca
+        transaction.spentTokenAmount, // spent_token_quantity
+        transaction.spentTokenSymbol, // spent_token_symbol
+        transaction.spentTokenMetadata?.marketCap || 0, // spent_token_marketcap
+        transaction.spentTokenPrice, // spent_token_price
     ]);
 
     try {

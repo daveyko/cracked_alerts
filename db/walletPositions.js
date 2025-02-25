@@ -5,50 +5,67 @@ function aggregateTransactions(transactions) {
 
     for (const tx of transactions) {
         const {
-            wallet_address,
-            alt_token_ca,
+            received_token_ca,
+            received_token_quantity,
+            received_token_price,
+            spent_token_ca,
+            spent_token_quantity,
+            spent_token_price,
+            timestamp,
             type,
-            alt_token_quantity,
-            alt_token_price,
-            timestamp, // Timestamp in seconds since epoch
+            wallet_address,
         } = tx;
 
-        const key = `${wallet_address}-${alt_token_ca}`;
+        // BUY or SELL Aggregation (Single alt token tracking)
+        const buyKey = `${wallet_address}-${received_token_ca}`;
+        const sellKey = `${wallet_address}-${spent_token_ca}`;
 
-        if (!aggregated[key]) {
-            aggregated[key] = {
-                wallet_address,
-                alt_token_ca,
-                total_bought_quantity: 0,
-                total_bought_cost_usd: 0,
-                total_sold_quantity: 0,
-                total_sold_value_usd: 0,
-                first_buy_timestamp: null,
-                first_sell_timestamp: null,
-            };
+        if (type === 'BUY' || type === 'SWAP') {
+            if (!aggregated[buyKey]) {
+                aggregated[buyKey] = {
+                    wallet_address,
+                    alt_token_ca: received_token_ca,
+                    total_bought_quantity: 0,
+                    total_bought_cost_usd: 0,
+                    total_sold_quantity: 0,
+                    total_sold_value_usd: 0,
+                    first_buy_timestamp: null,
+                    first_sell_timestamp: null,
+                };
+            }
+            aggregated[buyKey].total_bought_quantity += received_token_quantity;
+            aggregated[buyKey].total_bought_cost_usd +=
+                received_token_quantity * received_token_price;
+
+            if (
+                aggregated[buyKey].first_buy_timestamp === null ||
+                timestamp < aggregated[buyKey].first_buy_timestamp
+            ) {
+                aggregated[buyKey].first_buy_timestamp = timestamp;
+            }
         }
 
-        if (type === 'BUY') {
-            aggregated[key].total_bought_quantity += alt_token_quantity;
-            aggregated[key].total_bought_cost_usd += alt_token_quantity * alt_token_price;
-
-            // Track the earliest buy timestamp in this batch
-            if (
-                aggregated[key].first_buy_timestamp === null ||
-                timestamp < aggregated[key].first_buy_timestamp
-            ) {
-                aggregated[key].first_buy_timestamp = timestamp;
+        if (type === 'SELL' || type === 'SWAP') {
+            if (!aggregated[sellKey]) {
+                aggregated[sellKey] = {
+                    wallet_address,
+                    alt_token_ca: spent_token_ca,
+                    total_bought_quantity: 0,
+                    total_bought_cost_usd: 0,
+                    total_sold_quantity: 0,
+                    total_sold_value_usd: 0,
+                    first_buy_timestamp: null,
+                    first_sell_timestamp: null,
+                };
             }
-        } else if (type === 'SELL') {
-            aggregated[key].total_sold_quantity += alt_token_quantity;
-            aggregated[key].total_sold_value_usd += alt_token_quantity * alt_token_price;
+            aggregated[sellKey].total_sold_quantity += spent_token_quantity;
+            aggregated[sellKey].total_sold_value_usd += spent_token_quantity * spent_token_price;
 
-            // Track the earliest sell timestamp in this batch
             if (
-                aggregated[key].first_sell_timestamp === null ||
-                timestamp < aggregated[key].first_sell_timestamp
+                aggregated[sellKey].first_sell_timestamp === null ||
+                timestamp < aggregated[sellKey].first_sell_timestamp
             ) {
-                aggregated[key].first_sell_timestamp = timestamp;
+                aggregated[sellKey].first_sell_timestamp = timestamp;
             }
         }
     }
