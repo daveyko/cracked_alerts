@@ -6,8 +6,8 @@ const { getWalletScores } = require('../db/walletScores');
 const { transactionOverThreshold } = require('../utils/transactionThreshold');
 const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP = 200;
 const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP = 1;
-const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 20000;
-const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 100;
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 10000;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 50;
 const PORTNOY_WALLET_ADDRESS = '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD';
 
 async function transactionAlert(transaction, postMessage) {
@@ -46,6 +46,10 @@ async function sendMessage(title, chatId, transaction, postMessage) {
     const agg = await transactionAggByWalletToken([transaction], getWalletScores);
     if (agg.length > 0) {
         const message = transactionAggByWalletTokenMessage(agg, title);
+        //TODO: remove after finding out what these sol->sol/usdc->usdc swaps entail
+        if (transaction.receivedTokenSymbol === transaction.spentTokenSymbol) {
+            message += `\n ${JSON.stringify(transaction, 0, 2)}`;
+        }
         await postMessage(message, {
             parse_mode: 'HTML',
             disable_web_page_preview: true,

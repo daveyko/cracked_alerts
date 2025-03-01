@@ -117,7 +117,9 @@ async function updateWalletPositions(transactions) {
 
             // Calculate hold duration if both timestamps exist
             let hold_duration_seconds =
-                updated_first_buy_timestamp && updated_first_sell_timestamp
+                updated_first_buy_timestamp &&
+                updated_first_sell_timestamp &&
+                updated_first_sell_timestamp >= updated_first_buy_timestamp
                     ? updated_first_sell_timestamp - updated_first_buy_timestamp
                     : null;
 

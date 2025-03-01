@@ -66,6 +66,17 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
             spentTokenSymbol,
             spentTokenCA
         );
+        //TODO: remove after finding out what these sol->sol/usdc->usdc swaps entail
+        if (
+            (spentTokenSymbol === 'SOL' && receivedTokenSymbol === 'SOL') ||
+            (spentTokenSymbol === 'USDC' && receivedTokenSymbol === 'USDC')
+        ) {
+            console.log(
+                '***STABLE SWAP***',
+                JSON.stringify(rawTransaction, 0, 2),
+                JSON.stringify(swapResult, 0, 2)
+            );
+        }
 
         return {
             receivedTokenAmount,
@@ -104,13 +115,7 @@ function getTransactionType(receivedTokenSymbol, receivedTokenCA, spentTokenSymb
     ) {
         return 'BUY';
     }
-    if (
-        !isStableCoin(receivedTokenCA, receivedTokenSymbol) &&
-        !isStableCoin(spentTokenCA, spentTokenSymbol)
-    ) {
-        return 'SWAP';
-    }
-    throw new Error('NOT VALID TRANSACTION TYPE');
+    return 'SWAP';
 }
 
 function getTokenMetadata(token) {

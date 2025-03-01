@@ -73,7 +73,7 @@ const subscribeToWallet = async (address) => {
                     }
                     // Check if we've already processed this transaction
                     if (recentTransactions.has(signature)) {
-                        console.log(`Skipping duplicate transaction ${signature}`);
+                        console.log(`Skipping duplicate transaction`);
                         return;
                     }
                     // Add to recent transactions

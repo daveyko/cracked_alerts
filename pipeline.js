@@ -22,7 +22,7 @@ async function runWalletTransactionPipeline(transaction, address) {
         ]);
         await transactionAlert(parsedTransaction, postMessage);
     } else {
-        console.log('Not a swap transaction (no spent or received tokens pair found)');
+        console.log('Not a swap transaction');
     }
 }
 
