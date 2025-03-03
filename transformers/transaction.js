@@ -66,17 +66,6 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
             spentTokenSymbol,
             spentTokenCA
         );
-        //TODO: remove after finding out what these sol->sol/usdc->usdc swaps entail
-        if (
-            (spentTokenSymbol === 'SOL' && receivedTokenSymbol === 'SOL') ||
-            (spentTokenSymbol === 'USDC' && receivedTokenSymbol === 'USDC')
-        ) {
-            console.log(
-                '***STABLE SWAP***',
-                JSON.stringify(rawTransaction, 0, 2),
-                JSON.stringify(swapResult, 0, 2)
-            );
-        }
 
         return {
             receivedTokenAmount,

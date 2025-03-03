@@ -1,28 +1,30 @@
 const USDC_CA = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const SOL_CA = 'So11111111111111111111111111111111111111112';
 
 function isUSDC(tokenCA) {
     return tokenCA === USDC_CA;
 }
 
-function isSOL(tokenCA, tokenSymbol) {
-    return tokenSymbol === 'SOL' && !tokenCA;
+function isSOL(tokenCA) {
+    return tokenCA === SOL_CA;
 }
 
-function isStableCoin(tokenCA, tokenSymbol) {
-    return isUSDC(tokenCA) || isSOL(tokenCA, tokenSymbol);
+function isStableCoin(tokenCA) {
+    return isUSDC(tokenCA) || isSOL(tokenCA);
 }
 
-function isStableCoinTransaction(transaction) {
-    const { receivedTokenCA, receivedTokenSymbol, spentTokenCA, spentTokenSymbol } = transaction;
-    return (
-        isStableCoin(receivedTokenCA, receivedTokenSymbol) &&
-        isStableCoin(spentTokenCA, spentTokenSymbol)
-    );
+function isStableCoinBuy(receivedTokenCA, spentTokenCA) {
+    return isSOL(receivedTokenCA) && isUSDC(spentTokenCA);
+}
+
+function isStableCoinSell(receivedTokenCA, spentTokenCA) {
+    return isSOL(spentTokenCA) && isUSDC(receivedTokenCA);
 }
 
 module.exports = {
     isUSDC,
     isSOL,
     isStableCoin,
-    isStableCoinTransaction,
+    isStableCoinBuy,
+    isStableCoinSell,
 };

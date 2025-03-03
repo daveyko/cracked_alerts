@@ -4,9 +4,9 @@ const {
 } = require('../transformers/transactionAggByWalletToken');
 const { getWalletScores } = require('../db/walletScores');
 const { transactionOverThreshold } = require('../utils/transactionThreshold');
-const { isStableCoin } = require('../utils/coinType');
+const { isStableCoin, isStableCoinBuy, isStableCoinSell } = require('../utils/coinType');
 
-const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING = 200;
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING = 170;
 const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING = 1;
 const ALERT_THRESHOLD = 3;
 const ALERT_THRESHOLD_HIGH_THRESHOLD = 5;
@@ -23,10 +23,16 @@ async function multiWalletAlert(transaction, cache, postMessage) {
         )
     ) {
         // Only track **non-stable** tokens (alt tokens) for alerts
-        if (!isStableCoin(receivedTokenCA, receivedTokenSymbol)) {
+        if (
+            !isStableCoin(receivedTokenCA, receivedTokenSymbol) ||
+            isStableCoinBuy(receivedTokenCA, spentTokenCA)
+        ) {
             processTokenAlert(cache, walletName, receivedTokenCA, transaction, 'BUY', postMessage);
         }
-        if (!isStableCoin(spentTokenCA, spentTokenSymbol)) {
+        if (
+            !isStableCoin(spentTokenCA, spentTokenSymbol) ||
+            isStableCoinSell(receivedTokenCA, spentTokenCA)
+        ) {
             processTokenAlert(cache, walletName, spentTokenCA, transaction, 'SELL', postMessage);
         }
     }

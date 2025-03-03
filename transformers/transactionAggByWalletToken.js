@@ -1,7 +1,7 @@
 const { formatCompactNumber } = require('../utils/format');
 const { formatTimeFromSeconds } = require('../utils/format');
 const { WALLET_ADDRESSES } = require('../constants/walletAddresses');
-const { isStableCoin, isStableCoinTransaction } = require('../utils/coinType');
+const { isStableCoin, isStableCoinBuy, isStableCoinSell } = require('../utils/coinType');
 
 function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTime, metadata) {
     if (!groupedData[walletAddress]) {
@@ -74,10 +74,6 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
     });
 
     transactions.forEach((tx) => {
-        if (isStableCoinTransaction(tx)) {
-            return;
-        }
-
         const {
             receivedTokenAmount,
             receivedTokenCA,
@@ -108,26 +104,28 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             tokenCounts[spentTokenCA].swapSells++;
         }
 
-        const receivedEntry = !isStableCoin(receivedTokenCA, receivedTokenSymbol)
-            ? getTokenEntry(
-                  groupedData,
-                  walletAddress,
-                  receivedTokenCA,
-                  receivedTokenSymbol,
-                  blockTime,
-                  receivedTokenMetadata
-              )
-            : null;
-        const spentEntry = !isStableCoin(spentTokenCA, spentTokenSymbol)
-            ? getTokenEntry(
-                  groupedData,
-                  walletAddress,
-                  spentTokenCA,
-                  spentTokenSymbol,
-                  blockTime,
-                  spentTokenMetadata
-              )
-            : null;
+        const receivedEntry =
+            !isStableCoin(receivedTokenCA) || isStableCoinBuy(receivedTokenCA, spentTokenCA)
+                ? getTokenEntry(
+                      groupedData,
+                      walletAddress,
+                      receivedTokenCA,
+                      receivedTokenSymbol,
+                      blockTime,
+                      receivedTokenMetadata
+                  )
+                : null;
+        const spentEntry =
+            !isStableCoin(spentTokenCA) || isStableCoinSell(receivedTokenCA, spentTokenCA)
+                ? getTokenEntry(
+                      groupedData,
+                      walletAddress,
+                      spentTokenCA,
+                      spentTokenSymbol,
+                      blockTime,
+                      spentTokenMetadata
+                  )
+                : null;
 
         const receivedMarketCap = receivedTokenMetadata?.marketCap || 0;
         const spentMarketCap = spentTokenMetadata?.marketCap || 0;
@@ -212,6 +210,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
                 count: data.buys.count,
                 transactions: data.buys.transactions,
             },
+            latestBuyTime: data.blockTime,
             sellSummary: {
                 totalAltAmount: data.sells.totalAltAmount,
                 totalNonAltAmount: data.sells.totalReceived,
@@ -231,7 +230,10 @@ function transactionAggByWalletTokenMessage(data, title) {
 
     // Aggregate token data with SWAP context
     data.forEach((wallet) => {
-        wallet.summaries.forEach((summary) => {
+        const summariesLatestFirst = wallet.summaries.sort(
+            (a, b) => b.latestBuyTime - a.latestBuyTime
+        );
+        summariesLatestFirst.forEach((summary) => {
             const tokenCA = summary.altTokenCA;
             if (!groupedTokens[tokenCA]) {
                 groupedTokens[tokenCA] = {
@@ -255,7 +257,7 @@ function transactionAggByWalletTokenMessage(data, title) {
     });
 
     // Filter and generate token summary
-    Object.entries(groupedTokens).forEach(([tokenCA, tokenMetaData]) => {
+    Object.entries(groupedTokens).forEach(([_tokenCA, tokenMetaData]) => {
         const totalBuys = tokenMetaData.buys;
         const totalSells = tokenMetaData.sells;
         const swapBuys = tokenMetaData.swapBuys;

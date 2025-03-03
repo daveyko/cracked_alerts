@@ -46,10 +46,6 @@ async function sendMessage(title, chatId, transaction, postMessage) {
     const agg = await transactionAggByWalletToken([transaction], getWalletScores);
     if (agg.length > 0) {
         const message = transactionAggByWalletTokenMessage(agg, title);
-        //TODO: remove after finding out what these sol->sol/usdc->usdc swaps entail
-        if (transaction.receivedTokenSymbol === transaction.spentTokenSymbol) {
-            message += `\n ${JSON.stringify(transaction, 0, 2)}`;
-        }
         await postMessage(message, {
             parse_mode: 'HTML',
             disable_web_page_preview: true,
