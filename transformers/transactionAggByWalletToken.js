@@ -9,21 +9,21 @@ function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTi
     }
     if (!groupedData[walletAddress][tokenCA]) {
         groupedData[walletAddress][tokenCA] = {
-            altTokenCA: tokenCA,
-            altTokenSymbol: tokenSymbol,
-            altTokenMetadata: metadata,
+            tokenCA,
+            tokenSymbol,
+            tokenMetadata,
             blockTime,
             buys: {
-                totalAltAmount: 0,
-                totalSpent: 0,
+                totalBoughtAmount: 0,
+                totalSpentAmount: 0,
                 weightedMarketCapSum: 0,
                 weightedMarketCapAmount: 0,
                 count: 0,
                 transactions: [],
             },
             sells: {
-                totalAltAmount: 0,
-                totalReceived: 0,
+                totalSoldAmount: 0,
+                totalReceivedAmount: 0,
                 weightedMarketCapSum: 0,
                 weightedMarketCapAmount: 0,
                 count: 0,
@@ -34,25 +34,26 @@ function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTi
     const entry = groupedData[walletAddress][tokenCA];
     if (entry.blockTime < blockTime) {
         entry.blockTime = blockTime;
-        entry.altTokenMetadata = metadata;
+        entry.tokenMetadata = metadata;
     }
     return entry;
 }
 
-function updateEntry(entry, type, altAmount, nonAltAmount, marketCap, tx) {
+function updateEntry(entry, type, boughtOrSoldAmount, spentOrReceivedAmount, marketCap, tx) {
     if (!entry) {
         return;
     }
     const isBuy = type === 'buy';
     const target = isBuy ? entry.buys : entry.sells;
-    target.totalAltAmount += altAmount;
     if (isBuy) {
-        target.totalSpent += nonAltAmount;
+        target.totalBoughtAmount += boughtOrSoldAmount;
+        target.totalSpentAmount += spentOrReceivedAmount;
     } else {
-        target.totalReceived += nonAltAmount;
+        target.totalSoldAmount += boughtOrSoldAmount;
+        target.totalReceivedAmount += spentOrReceivedAmount;
     }
-    target.weightedMarketCapSum += marketCap * nonAltAmount;
-    target.weightedMarketCapAmount += nonAltAmount;
+    target.weightedMarketCapSum += marketCap * spentOrReceivedAmount;
+    target.weightedMarketCapAmount += spentOrReceivedAmount;
     target.count++;
     target.transactions.push(tx);
 }
@@ -197,13 +198,13 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
         walletAddress,
         walletName: walletNames[walletAddress],
         walletScoreData: walletScores[walletAddress],
-        summaries: Object.entries(tokens).map(([altTokenCA, data]) => ({
-            altTokenCA,
-            altTokenSymbol: data.altTokenSymbol,
-            altTokenMetadata: data.altTokenMetadata,
+        summaries: Object.entries(tokens).map(([tokenCA, data]) => ({
+            tokenCA,
+            tokenSymbol: data.tokenSymbol,
+            tokenMetadata: data.tokenMetadata,
             buySummary: {
-                totalAltAmount: data.buys.totalAltAmount,
-                totalNonAltAmount: data.buys.totalSpent,
+                totalBoughtAmount: data.buys.totalBoughtAmount,
+                totalSpentAmount: data.buys.totalSpentAmount,
                 avgMarketCap: data.buys.weightedMarketCapAmount
                     ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount
                     : 0,
@@ -212,8 +213,8 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             },
             latestBuyTime: data.blockTime,
             sellSummary: {
-                totalAltAmount: data.sells.totalAltAmount,
-                totalNonAltAmount: data.sells.totalReceived,
+                totalSoldAmount: data.sells.totalSoldAmount,
+                totalReceivedAmount: data.sells.totalReceivedAmount,
                 avgMarketCap: data.sells.weightedMarketCapAmount
                     ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount
                     : 0,
@@ -321,24 +322,12 @@ Token Age: ${
         // Track displayed transactions to avoid duplicates
         const displayedTxns = new Set();
         wallet.summaries.forEach((summary) => {
-            // Process buys first (🟢)
-            summary.buySummary.transactions.forEach((txn) => {
-                const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
-                if (!displayedTxns.has(txnKey)) {
-                    const emoji = txn.transactionType === 'BUY' ? '🟢' : '🟡'; // 🟡 for SWAP categorized as BUY
-                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} ${txn.spentTokenSymbol} → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} <a href="https://dexscreener.com/solana/${summary.altTokenCA}">${txn.receivedTokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
-                    displayedTxns.add(txnKey);
-                }
-            });
-            // Process sells second (🔴), only if not already displayed
-            summary.sellSummary.transactions.forEach((txn) => {
-                const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
-                if (!displayedTxns.has(txnKey)) {
-                    const emoji = txn.transactionType === 'SELL' ? '🔴' : '🟡'; // 🟡 for SWAP categorized as SELL
-                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} <a href="https://dexscreener.com/solana/${summary.altTokenCA}">${txn.spentTokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} ${txn.receivedTokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
-                    displayedTxns.add(txnKey);
-                }
-            });
+            if (summary.buySummary.count > 0) {
+                message += `🟢 Buys: ${formatCompactNumber(Math.abs(summary.buySummary.totalSpentAmount))} ${summary.tokenSymbol} → ${formatCompactNumber(Math.abs(summary.buySummary.totalBoughtAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${summary.tokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
+            }
+            if (summary.sellSummary.count > 0) {
+                message += `🔴 Sells: ${formatCompactNumber(Math.abs(summary.sellSummary.totalSoldAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${summary.tokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(summary.sellSummary.totalReceivedAmount))} ${summary.tokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
+            }
         });
         message += `---\n`;
     });

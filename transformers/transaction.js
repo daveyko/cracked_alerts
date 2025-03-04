@@ -44,12 +44,8 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
     if (spentTokens.length && receivedTokens.length) {
         const spentToken = spentTokens[0];
         const receivedToken = receivedTokens[0];
-        //Sometimes seeing transactions of USDC to USDC which we don't care about
-        if (spentToken.symbol === receivedToken.symbol) {
-            return null;
-        }
         const receivedTokenSymbol = receivedToken.symbol;
-        const receivedTokenCA = receivedToken.info?.address || receivedToken.address;
+        const receivedTokenCA = receivedToken.info?.address || receivedToken.address || null;
         const receivedTokenName = receivedToken.info?.name || receivedTokenSymbol;
         const receivedTokenPrice = receivedToken.info?.price;
         const receivedTokenAmount = parseFloat(Math.abs(receivedToken.amount).toFixed(2));

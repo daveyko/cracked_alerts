@@ -27,15 +27,15 @@ async function detectTokenSwap(transaction, walletAddress, fetchTokenData) {
 
     const result = {};
 
-    // Add SOL changes if any
+    populateMap(preMap, preTokenBalances);
+    populateMap(postMap, postTokenBalances);
+
+    // Add SOL changes if any -- fo SOL specifically we only calculate from pre/postBalances instead of preToken/postTokenBalances
     if (Math.abs(solChange) > 0) {
         preMap.set(SOL_MINT, preSOL);
         postMap.set(SOL_MINT, postSOL);
         changedTokens.add(SOL_MINT);
     }
-
-    populateMap(preMap, preTokenBalances);
-    populateMap(postMap, postTokenBalances);
 
     // Get token info for all changed tokens except USDC
     const tokenInfoMap = new Map();
