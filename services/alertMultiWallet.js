@@ -13,8 +13,7 @@ const ALERT_THRESHOLD_HIGH_THRESHOLD = 5;
 const ALERT_THRESHOLD_REFRESH = 10;
 
 async function multiWalletAlert(transaction, cache, postMessage) {
-    const { receivedTokenCA, receivedTokenSymbol, spentTokenCA, spentTokenSymbol, walletName } =
-        transaction;
+    const { receivedTokenCA, spentTokenCA, walletName } = transaction;
     if (
         transactionOverThreshold(
             transaction,
@@ -23,16 +22,10 @@ async function multiWalletAlert(transaction, cache, postMessage) {
         )
     ) {
         // Only track **non-stable** tokens (alt tokens) for alerts
-        if (
-            !isStableCoin(receivedTokenCA, receivedTokenSymbol) ||
-            isStableCoinBuy(receivedTokenCA, spentTokenCA)
-        ) {
+        if (!isStableCoin(receivedTokenCA) || isStableCoinBuy(receivedTokenCA, spentTokenCA)) {
             processTokenAlert(cache, walletName, receivedTokenCA, transaction, 'BUY', postMessage);
         }
-        if (
-            !isStableCoin(spentTokenCA, spentTokenSymbol) ||
-            isStableCoinSell(receivedTokenCA, spentTokenCA)
-        ) {
+        if (!isStableCoin(spentTokenCA) || isStableCoinSell(receivedTokenCA, spentTokenCA)) {
             processTokenAlert(cache, walletName, spentTokenCA, transaction, 'SELL', postMessage);
         }
     }

@@ -56,12 +56,7 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
         const spentTokenPrice = spentToken.info?.price;
         const spentTokenAmount = parseFloat(Math.abs(spentToken.amount).toFixed(2));
 
-        const transactionType = getTransactionType(
-            receivedTokenSymbol,
-            receivedTokenCA,
-            spentTokenSymbol,
-            spentTokenCA
-        );
+        const transactionType = getTransactionType(receivedTokenCA, spentTokenCA);
 
         return {
             receivedTokenAmount,
@@ -85,18 +80,16 @@ async function getTransaction(rawTransaction, walletAddress, fetchTokenData) {
     return null;
 }
 
-function getTransactionType(receivedTokenSymbol, receivedTokenCA, spentTokenSymbol, spentTokenCA) {
+function getTransactionType(receivedTokenCA, spentTokenCA) {
     if (
-        (isStableCoin(receivedTokenCA, receivedTokenSymbol) &&
-            !isStableCoin(spentTokenCA, spentTokenSymbol)) ||
-        (isUSDC(receivedTokenCA) && isSOL(spentTokenCA, spentTokenSymbol))
+        (isStableCoin(receivedTokenCA) && !isStableCoin(spentTokenCA)) ||
+        (isUSDC(receivedTokenCA) && isSOL(spentTokenCA))
     ) {
         return 'SELL';
     }
     if (
-        (!isStableCoin(receivedTokenCA, receivedTokenSymbol) &&
-            isStableCoin(spentTokenCA, spentTokenSymbol)) ||
-        (isSOL(receivedTokenCA, receivedTokenSymbol) && isUSDC(spentTokenCA))
+        (!isStableCoin(receivedTokenCA) && isStableCoin(spentTokenCA)) ||
+        (isSOL(receivedTokenCA) && isUSDC(spentTokenCA))
     ) {
         return 'BUY';
     }
@@ -104,7 +97,8 @@ function getTransactionType(receivedTokenSymbol, receivedTokenCA, spentTokenSymb
 }
 
 function getTokenMetadata(token) {
-    if (!isStableCoin(token)) {
+    const tokenCA = token.info?.address || token.address || null;
+    if (!isStableCoin(tokenCA)) {
         return {
             fiveMinTxn: token.info?.['5mtxn'],
             fiveMinVol: token.info?.['5mvol'],

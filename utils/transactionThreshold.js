@@ -3,13 +3,11 @@ const { isSOL, isUSDC, isStableCoin } = require('../utils/coinType');
 function transactionOverThreshold(transaction, solThreshold, usdcThreshold) {
     const {
         receivedTokenCA,
-        receivedTokenSymbol,
         receivedTokenPrice,
         receivedTokenAmount,
         spentTokenAmount,
         spentTokenPrice,
         spentTokenCA,
-        spentTokenSymbol,
     } = transaction;
     if (isUSDC(receivedTokenCA)) {
         return receivedTokenAmount > usdcThreshold;
@@ -17,16 +15,13 @@ function transactionOverThreshold(transaction, solThreshold, usdcThreshold) {
     if (isUSDC(spentTokenCA)) {
         return spentTokenAmount > usdcThreshold;
     }
-    if (isSOL(receivedTokenCA, receivedTokenSymbol)) {
+    if (isSOL(receivedTokenCA)) {
         return receivedTokenAmount > solThreshold;
     }
-    if (isSOL(spentTokenCA, spentTokenSymbol)) {
+    if (isSOL(spentTokenCA)) {
         return spentTokenAmount > solThreshold;
     }
-    if (
-        !isStableCoin(receivedTokenCA, receivedTokenSymbol) &&
-        !isStableCoin(spentTokenCA, spentTokenSymbol)
-    ) {
+    if (!isStableCoin(receivedTokenCA) && !isStableCoin(spentTokenCA)) {
         return (
             receivedTokenAmount * receivedTokenPrice > usdcThreshold ||
             spentTokenAmount * spentTokenPrice > usdcThreshold

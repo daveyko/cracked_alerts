@@ -34,8 +34,9 @@ function aggregateTransactions(transactions) {
                 };
             }
             aggregated[buyKey].total_bought_quantity += received_token_quantity;
-            aggregated[buyKey].total_bought_cost_usd +=
-                received_token_quantity * received_token_price;
+            aggregated[buyKey].total_bought_cost_usd += received_token_price
+                ? received_token_quantity * received_token_price
+                : 0;
 
             if (
                 aggregated[buyKey].first_buy_timestamp === null ||
