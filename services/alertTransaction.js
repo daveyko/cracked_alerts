@@ -3,17 +3,23 @@ const {
     transactionAggByWalletTokenMessage,
 } = require('../transformers/transactionAggByWalletToken');
 const { getWalletScores } = require('../db/walletScores');
-const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP = 200;
-const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP = 1;
-const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 20000;
-const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 100;
+const { transactionOverThreshold } = require('../utils/transactionThreshold');
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP = 2000;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP = 10;
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 10000;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 50;
 const PORTNOY_WALLET_ADDRESS = '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD';
+const Y22_WALLET_ADDRESS = 'GgG65z3MXpmGnV3ZapKv5ayDqox1x7CJnqP1LD8FaZdt';
 
 async function transactionAlert(transaction, postMessage) {
-    const { stableTokenAmount, stableTokenSymbol, walletAddress, walletName } = transaction;
+    const { walletAddress, walletName } = transaction;
     if (
-        shouldProcessTransactionAlert(stableTokenAmount, stableTokenSymbol) &&
-        [PORTNOY_WALLET_ADDRESS].includes(walletAddress)
+        transactionOverThreshold(
+            transaction,
+            MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP,
+            MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP
+        ) &&
+        [PORTNOY_WALLET_ADDRESS, Y22_WALLET_ADDRESS].includes(walletAddress)
     ) {
         await sendMessage(
             `${walletName} VIP`,
@@ -21,7 +27,13 @@ async function transactionAlert(transaction, postMessage) {
             transaction,
             postMessage
         );
-    } else if (shouldProcessTransactionAlertWhaleBuy(stableTokenAmount, stableTokenSymbol)) {
+    } else if (
+        transactionOverThreshold(
+            transaction,
+            MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE,
+            MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE
+        )
+    ) {
         await sendMessage(
             `${walletName} SIZED`,
             process.env.TELEGRAM_CHAT_ID_HIGH_THRESHOLD,
@@ -41,26 +53,6 @@ async function sendMessage(title, chatId, transaction, postMessage) {
             chatId,
         });
     }
-}
-
-function shouldProcessTransactionAlert(stableTokenAmount, stableTokenSymbol) {
-    if (stableTokenSymbol === 'SOL') {
-        return stableTokenAmount > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_VIP;
-    }
-    if (stableTokenSymbol === 'USDC') {
-        return stableTokenAmount > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_VIP;
-    }
-    return false;
-}
-
-function shouldProcessTransactionAlertWhaleBuy(stableTokenAmount, stableTokenSymbol) {
-    if (stableTokenSymbol === 'SOL') {
-        return stableTokenAmount > MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE;
-    }
-    if (stableTokenSymbol === 'USDC') {
-        return stableTokenAmount > MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE;
-    }
-    return false;
 }
 
 module.exports = {

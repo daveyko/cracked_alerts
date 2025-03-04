@@ -14,7 +14,7 @@ async function runWalletTransactionPipeline(transaction, address) {
     // Only proceed if we have both spent and received tokens
     if (parsedTransaction !== null) {
         console.log(
-            `New ${parsedTransaction.transactionType} transaction detected for wallet: ${address} and token: ${parsedTransaction.altTokenCA}`
+            `New ${parsedTransaction.transactionType} transaction detected for wallet: ${address} and token: ${parsedTransaction.transactionType === 'SELL' ? parsedTransaction.spentTokenSymbol : parsedTransaction.receivedTokenSymbol}`
         );
         await Promise.all([
             multiWalletAlert(parsedTransaction, cache, postMessage),
@@ -22,7 +22,7 @@ async function runWalletTransactionPipeline(transaction, address) {
         ]);
         await transactionAlert(parsedTransaction, postMessage);
     } else {
-        console.log('Not a swap transaction (no spent or received tokens pair found)');
+        console.log('Not a swap transaction');
     }
 }
 

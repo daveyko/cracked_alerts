@@ -47,7 +47,7 @@ async function computeWalletScores() {
         walletScores[wallet_address].unique_tokens_traded.add(alt_token_ca);
 
         // Only count valid hold durations (ignore null values)
-        if (hold_duration_seconds !== null) {
+        if (hold_duration_seconds !== null && hold_duration_seconds >= 0) {
             walletScores[wallet_address].avg_hold_duration_seconds += hold_duration_seconds;
             walletScores[wallet_address].hold_entries += 1;
         }
