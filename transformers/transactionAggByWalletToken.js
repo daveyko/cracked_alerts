@@ -334,26 +334,16 @@ Token Age: ${
         }
         message += `<i>Last ${totalTransactionCount} ${totalTransactionCount === 1 ? 'transaction' : 'transactions'}:</i>\n`;
         // Track displayed transactions to avoid duplicates
-        const displayedTxns = new Set();
         wallet.summaries.forEach((summary) => {
             // Process buys first (🟢)
-            summary.buySummary.transactions.forEach((txn) => {
-                const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
-                if (!displayedTxns.has(txnKey)) {
-                    const emoji = txn.transactionType === 'BUY' ? '🟢' : '🟡'; // 🟡 for SWAP categorized as BUY
-                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} ${txn.spentTokenSymbol} → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${txn.receivedTokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
-                    displayedTxns.add(txnKey);
-                }
-            });
-            // Process sells second (🔴), only if not already displayed
-            summary.sellSummary.transactions.forEach((txn) => {
-                const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
-                if (!displayedTxns.has(txnKey)) {
-                    const emoji = txn.transactionType === 'SELL' ? '🔴' : '🟡'; // 🟡 for SWAP categorized as SELL
-                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${txn.spentTokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} ${txn.receivedTokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
-                    displayedTxns.add(txnKey);
-                }
-            });
+            const { buySummary, sellSummary } = summary;
+            if (buySummary.count > 0) {
+                message += `🟢 ${formatCompactNumber(Math.abs(buySummary.totalSpentAmount))} ${buySummary.spentTokenSymbol} → ${formatCompactNumber(Math.abs(buySummary.totalBoughtAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${summary.tokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(buySummary.avgMarketCap)}\n`;
+            }
+            // Process sells second (🔴) note we only process the dominant tokenCA for sells -- otherwise for alt to alt swaps we get redundant data since a buy of tokenA is also a sell of tokenB
+            if (sellSummary.count > 0 && summary.tokenCA === dominantTokenCA) {
+                message += `🔴 ${formatCompactNumber(Math.abs(sellSummary.totalSoldAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${summary.tokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(sellSummary.totalReceivedAmount))} ${sellSummary.receivedTokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(sellSummary.avgMarketCap)}\n`;
+            }
         });
         message += `---\n`;
     });
