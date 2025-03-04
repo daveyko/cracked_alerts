@@ -3,19 +3,28 @@ const { formatTimeFromSeconds } = require('../utils/format');
 const { WALLET_ADDRESSES } = require('../constants/walletAddresses');
 const { isStableCoin, isStableCoinBuy, isStableCoinSell } = require('../utils/coinType');
 
-function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTime, metadata) {
+function getTokenEntry(
+    groupedData,
+    walletAddress,
+    boughtOrSoldTokenCA,
+    boughtOrSoldTokenSymbol,
+    spentOrReceivedTokenSymbol,
+    blockTime,
+    metadata
+) {
     if (!groupedData[walletAddress]) {
         groupedData[walletAddress] = {};
     }
-    if (!groupedData[walletAddress][tokenCA]) {
-        groupedData[walletAddress][tokenCA] = {
-            tokenCA,
-            tokenSymbol,
-            tokenMetadata,
+    if (!groupedData[walletAddress][boughtOrSoldTokenCA]) {
+        groupedData[walletAddress][boughtOrSoldTokenCA] = {
+            tokenCA: boughtOrSoldTokenCA,
+            tokenSymbol: boughtOrSoldTokenSymbol,
+            tokenMetadata: metadata,
             blockTime,
             buys: {
                 totalBoughtAmount: 0,
                 totalSpentAmount: 0,
+                spentTokenSymbol: spentOrReceivedTokenSymbol,
                 weightedMarketCapSum: 0,
                 weightedMarketCapAmount: 0,
                 count: 0,
@@ -24,6 +33,7 @@ function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTi
             sells: {
                 totalSoldAmount: 0,
                 totalReceivedAmount: 0,
+                receivedTokenSymbol: spentOrReceivedTokenSymbol,
                 weightedMarketCapSum: 0,
                 weightedMarketCapAmount: 0,
                 count: 0,
@@ -31,7 +41,7 @@ function getTokenEntry(groupedData, walletAddress, tokenCA, tokenSymbol, blockTi
             },
         };
     }
-    const entry = groupedData[walletAddress][tokenCA];
+    const entry = groupedData[walletAddress][boughtOrSoldTokenCA];
     if (entry.blockTime < blockTime) {
         entry.blockTime = blockTime;
         entry.tokenMetadata = metadata;
@@ -112,6 +122,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
                       walletAddress,
                       receivedTokenCA,
                       receivedTokenSymbol,
+                      spentTokenSymbol,
                       blockTime,
                       receivedTokenMetadata
                   )
@@ -123,6 +134,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
                       walletAddress,
                       spentTokenCA,
                       spentTokenSymbol,
+                      receivedTokenSymbol,
                       blockTime,
                       spentTokenMetadata
                   )
@@ -205,6 +217,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             buySummary: {
                 totalBoughtAmount: data.buys.totalBoughtAmount,
                 totalSpentAmount: data.buys.totalSpentAmount,
+                spentTokenSymbol: data.buys.spentTokenSymbol,
                 avgMarketCap: data.buys.weightedMarketCapAmount
                     ? data.buys.weightedMarketCapSum / data.buys.weightedMarketCapAmount
                     : 0,
@@ -215,6 +228,7 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
             sellSummary: {
                 totalSoldAmount: data.sells.totalSoldAmount,
                 totalReceivedAmount: data.sells.totalReceivedAmount,
+                receivedTokenSymbol: data.sells.receivedTokenSymbol,
                 avgMarketCap: data.sells.weightedMarketCapAmount
                     ? data.sells.weightedMarketCapSum / data.sells.weightedMarketCapAmount
                     : 0,
@@ -225,21 +239,18 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
     }));
 }
 
-function transactionAggByWalletTokenMessage(data, title) {
-    let message = '';
+function getDominantTokenData(data) {
     const groupedTokens = {};
-
-    // Aggregate token data with SWAP context
     data.forEach((wallet) => {
         const summariesLatestFirst = wallet.summaries.sort(
             (a, b) => b.latestBuyTime - a.latestBuyTime
         );
         summariesLatestFirst.forEach((summary) => {
-            const tokenCA = summary.altTokenCA;
+            const tokenCA = summary.tokenCA;
             if (!groupedTokens[tokenCA]) {
                 groupedTokens[tokenCA] = {
-                    ...summary.altTokenMetadata,
-                    symbol: summary.altTokenSymbol,
+                    ...summary.tokenMetadata,
+                    symbol: summary.tokenSymbol,
                     buys: 0,
                     sells: 0,
                     swapBuys: 0,
@@ -256,49 +267,52 @@ function transactionAggByWalletTokenMessage(data, title) {
             });
         });
     });
+    const [dominantTokenData] = Object.entries(groupedTokens).sort(([_a, metaA], [_b, metaB]) => {
+        const totalBuysA = metaA.buys + metaA.swapBuys;
+        const totalSellsA = metaA.sells + metaA.swapSells;
+        const maxA = Math.max(totalBuysA, totalSellsA);
+        const totalBuysB = metaB.buys + metaB.swapBuys;
+        const totalSellsB = metaB.sells + metaB.swapSells;
+        const maxB = Math.max(totalBuysB, totalSellsB);
+        // Sort from least to greatest
+        if (maxA !== maxB) return maxB - maxA;
+        // If tied, prioritize buys
+        return totalBuysB - totalBuysA;
+    });
+    return dominantTokenData;
+}
 
-    // Filter and generate token summary
-    Object.entries(groupedTokens).forEach(([_tokenCA, tokenMetaData]) => {
-        const totalBuys = tokenMetaData.buys;
-        const totalSells = tokenMetaData.sells;
-        const swapBuys = tokenMetaData.swapBuys;
-        const swapSells = tokenMetaData.swapSells;
+function transactionAggByWalletTokenMessage(data, title) {
+    let message = '';
+    const [dominantTokenCA, dominantTokenData] = getDominantTokenData(data);
+    const { buys: totalBuys, sells: totalSells } = dominantTokenData;
+    const transactionLabel =
+        totalBuys > totalSells
+            ? `<b>${title}</b> BUY 🟢🟢🟢`
+            : totalSells > totalBuys
+              ? `<b>${title}</b> SELL 🔴🔴🔴`
+              : `<b>${title}</b> SWAP 🟡🟡🟡`;
 
-        // Skip tokens that are only involved as the opposite side of a dominant SWAP pattern
-        const isSwapOnlyBuy = totalBuys === swapBuys && totalSells === 0;
-        const isSwapOnlySell = totalSells === swapSells && totalBuys === 0;
-        const isDominant =
-            (swapBuys > 1 && totalBuys > totalSells) || (swapSells > 1 && totalSells > totalBuys);
-        if (!isDominant && (isSwapOnlyBuy || isSwapOnlySell)) return;
-
-        const transactionLabel =
-            totalBuys > totalSells
-                ? `<b>${title}</b> BUY 🟢🟢🟢`
-                : totalSells > totalBuys
-                  ? `<b>${title}</b> SELL 🔴🔴🔴`
-                  : `<b>${title}</b> SWAP 🟡🟡🟡`;
-
-        message += `${transactionLabel} Detected for: $${tokenMetaData.symbol || 'Unknown'} 💉💉💉
+    message += `${transactionLabel} Detected for: $${dominantTokenData.symbol || 'Unknown'} 💉💉💉
 <b>Token Information</b>
 Socials: ${
-            tokenMetaData.socials
-                ? tokenMetaData.socials
-                      .map(
-                          (social) =>
-                              `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
-                      )
-                      .join(' | ')
-                : 'None'
-        }
-Market Cap: $${formatCompactNumber(tokenMetaData.marketCap || 0)}
-5 min txns (buy / sell): ${tokenMetaData.fiveMinTxn?.buys || 0} / ${tokenMetaData.fiveMinTxn?.sells || 0}
+        dominantTokenData.socials
+            ? dominantTokenData.socials
+                  .map(
+                      (social) =>
+                          `<a href="${social.url}">${social.type.charAt(0).toUpperCase() + social.type.slice(1)}</a>`
+                  )
+                  .join(' | ')
+            : 'None'
+    }
+Market Cap: $${formatCompactNumber(dominantTokenData.marketCap || 0)}
+5 min txns (buy / sell): ${dominantTokenData.fiveMinTxn?.buys || 0} / ${dominantTokenData.fiveMinTxn?.sells || 0}
 Token Age: ${
-            tokenMetaData.pairCreatedAt
-                ? Math.floor((Date.now() - tokenMetaData.pairCreatedAt) / (1000 * 60))
-                : 'Unknown'
-        }m
+        dominantTokenData.pairCreatedAt
+            ? Math.floor((Date.now() - dominantTokenData.pairCreatedAt) / (1000 * 60))
+            : 'Unknown'
+    }m
 --------------------------------------------------------------------\n`;
-    });
 
     // Sort wallets by rank and generate wallet summary
     const sortedByWalletRank = data.sort(
@@ -322,22 +336,33 @@ Token Age: ${
         // Track displayed transactions to avoid duplicates
         const displayedTxns = new Set();
         wallet.summaries.forEach((summary) => {
-            if (summary.buySummary.count > 0) {
-                message += `🟢 Buys: ${formatCompactNumber(Math.abs(summary.buySummary.totalSpentAmount))} ${summary.tokenSymbol} → ${formatCompactNumber(Math.abs(summary.buySummary.totalBoughtAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${summary.tokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
-            }
-            if (summary.sellSummary.count > 0) {
-                message += `🔴 Sells: ${formatCompactNumber(Math.abs(summary.sellSummary.totalSoldAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${summary.tokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(summary.sellSummary.totalReceivedAmount))} ${summary.tokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
-            }
+            // Process buys first (🟢)
+            summary.buySummary.transactions.forEach((txn) => {
+                const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
+                if (!displayedTxns.has(txnKey)) {
+                    const emoji = txn.transactionType === 'BUY' ? '🟢' : '🟡'; // 🟡 for SWAP categorized as BUY
+                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} ${txn.spentTokenSymbol} → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${txn.receivedTokenSymbol.toLowerCase()}</a> | avg_mc: ${formatCompactNumber(summary.buySummary.avgMarketCap)}\n`;
+                    displayedTxns.add(txnKey);
+                }
+            });
+            // Process sells second (🔴), only if not already displayed
+            summary.sellSummary.transactions.forEach((txn) => {
+                const txnKey = `${txn.spentTokenCA}-${txn.receivedTokenCA}-${txn.blockTime}`;
+                if (!displayedTxns.has(txnKey)) {
+                    const emoji = txn.transactionType === 'SELL' ? '🔴' : '🟡'; // 🟡 for SWAP categorized as SELL
+                    message += `${emoji} ${formatCompactNumber(Math.abs(txn.spentTokenAmount))} <a href="https://dexscreener.com/solana/${summary.tokenCA}">${txn.spentTokenSymbol.toLowerCase()}</a> → ${formatCompactNumber(Math.abs(txn.receivedTokenAmount))} ${txn.receivedTokenSymbol.toLowerCase()} | avg_mc: ${formatCompactNumber(summary.sellSummary.avgMarketCap)}\n`;
+                    displayedTxns.add(txnKey);
+                }
+            });
         });
         message += `---\n`;
     });
 
-    const altTokenCA = Object.keys(groupedTokens)[0] || '';
     message += `\n<b>Quick Links:</b>\n`;
-    message += `<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${altTokenCA}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${altTokenCA}?handle=66478257f2babf7339037">Photon</a> | <a href="https://neo.bullx.io/terminal?chainId=1399811149&address=${altTokenCA}">BullX</a>\n`;
-    message += `<b>🤖 Tg Bots:</b> <a href="https://t.me/achilles_trojanbot?start=r-justinrh-${altTokenCA}">Trojan</a>\n`;
-    message += `<b>🔍 Explorer:</b> <a href="https://solscan.io/token/${altTokenCA}">View Token</a>\n`;
-    message += `<b>📝 CA:</b> <code>${altTokenCA}</code>`;
+    message += `<b>📊 Charts:</b> <a href="https://dexscreener.com/solana/${dominantTokenCA}">Dexscreener</a> | <a href="https://photon-sol.tinyastro.io/en/lp/${dominantTokenCA}?handle=66478257f2babf7339037">Photon</a> | <a href="https://neo.bullx.io/terminal?chainId=1399811149&address=${dominantTokenCA}">BullX</a>\n`;
+    message += `<b>🤖 Tg Bots:</b> <a href="https://t.me/achilles_trojanbot?start=r-justinrh-${dominantTokenCA}">Trojan</a>\n`;
+    message += `<b>🔍 Explorer:</b> <a href="https://solscan.io/token/${dominantTokenCA}">View Token</a>\n`;
+    message += `<b>📝 CA:</b> <code>${dominantTokenCA}</code>`;
     return message;
 }
 
