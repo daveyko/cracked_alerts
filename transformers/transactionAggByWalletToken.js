@@ -66,6 +66,10 @@ function updateEntry(entry, type, boughtOrSoldAmount, spentOrReceivedAmount, mar
     target.weightedMarketCapAmount += spentOrReceivedAmount;
     target.count++;
     target.transactions.push(tx);
+    if (entry.blockTime < tx.blockTime) {
+        entry.blockTime = tx.blockTime;
+        entry.tokenMetadata = type === 'buy' ? tx.receivedTokenMetadata : tx.spentTokenMetadata;
+    }
 }
 
 async function transactionAggByWalletToken(transactions, getWalletScores) {
