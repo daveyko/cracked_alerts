@@ -66,10 +66,6 @@ function updateEntry(entry, type, boughtOrSoldAmount, spentOrReceivedAmount, mar
     target.weightedMarketCapAmount += spentOrReceivedAmount;
     target.count++;
     target.transactions.push(tx);
-    if (entry.blockTime < tx.blockTime) {
-        entry.blockTime = tx.blockTime;
-        entry.tokenMetadata = type === 'buy' ? tx.receivedTokenMetadata : tx.spentTokenMetadata;
-    }
 }
 
 async function transactionAggByWalletToken(transactions, getWalletScores) {
@@ -246,21 +242,30 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
 function getDominantTokenData(data) {
     const groupedTokens = {};
     data.forEach((wallet) => {
-        const summariesLatestFirst = wallet.summaries.sort(
-            (a, b) => b.latestBuyTime - a.latestBuyTime
-        );
-        summariesLatestFirst.forEach((summary) => {
+        wallet.summaries.forEach((summary) => {
             const tokenCA = summary.tokenCA;
             if (!groupedTokens[tokenCA]) {
                 groupedTokens[tokenCA] = {
                     ...summary.tokenMetadata,
                     symbol: summary.tokenSymbol,
+                    latestBuyTime: summary.latestBuyTime,
                     buys: 0,
                     sells: 0,
                     swapBuys: 0,
                     swapSells: 0,
                 };
             }
+            const currentTokenData = groupedTokens[tokenCA];
+            const currentLatestBuyTime = currentTokenData.latestBuyTime;
+            if (summary.latestBuyTime > currentLatestBuyTime) {
+                groupedTokens[tokenCA] = {
+                    ...currentTokenData,
+                    ...summary.tokenMetadata,
+                    symbol: summary.tokenSymbol,
+                    latestBuyTime: summary.latestBuyTime,
+                };
+            }
+
             groupedTokens[tokenCA].buys += summary.buySummary.count;
             groupedTokens[tokenCA].sells += summary.sellSummary.count;
             summary.buySummary.transactions.forEach((tx) => {
