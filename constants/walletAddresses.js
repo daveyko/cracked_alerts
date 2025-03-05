@@ -34,12 +34,16 @@ const WALLET_ADDRESSES = [
     'CRVidEDtEUTYZisCxBZkpELzhQc9eauMLR3FWg74tReL', // pranav dd #18 Mix of low cap snipes and mid caps that go up to couple ms before dying.
     'ATFRUwvyMh61w2Ab6AZxUyxsAfiiuG1RqL6iv3Vi9q2B', // pranav dd #19 Swing trader trading on mid and high caps (finally)
     '6S8GezkxYUfZy9JPtYnanbcZTMB87Wjt1qx3c6ELajKC', // pranav dd #20 good mix
-    //PORTNOY
-    '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD', // PORTNOY
     'HABhDh9zrzf8mA4SBo1yro8M6AirH2hZdLNPpuvMH6iA', // bugha CT
     'HYWo71Wk9PNDe5sBaRKazPnVyGnQDiwgXCFKvgAQ1ENp', // ansem alt maybe
     'DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm', // Gake(SMsol5/50%insidery)
     '3tc4BVAdzjr1JpeZu6NAjLHyp4kK3iic7TexMBYGJ4Xk', // devvy
+    //DK dd wallet
+    '5rkPDK4JnVAumgzeV2Zu8vjggMTtHdDtrsd5o9dhGZHD', // PORTNOY
+    '4WPTQA7BB4iRdrPhgNpJihGcxKh8T43gLjMn5PbEVfQw', // oura: infreq trade (3-4-25 last 30d 150k profit, 200k of sol)
+    '4BdKaxN8G6ka4GYtQQWk4G4dZRUTX2vQH9GcXdBREFUk', // jijo: semifreq trade (3-4-25 last 30d 300k profit, 55k of sol)
+    'BieeZkdnBAgNYknzo3RH2vku7FcPkFZMZmRJANh2TpW', // anon: semifreq trade (3-4-25 last 30d 2m profit, 50k of sol)
+    'GitYucwpNcg6Dx1Y15UQ9TQn8LZMX1uuqQNn8rXxEWNC', // anon: huge sol bag might be exchange wallet (700M of sol)
 ];
 
 const WALLET_NAMES = {
@@ -91,6 +95,10 @@ const WALLET_NAMES = {
     HYWo71Wk9PNDe5sBaRKazPnVyGnQDiwgXCFKvgAQ1ENp: 'Ansem Alt Maybe',
     DNfuF1L62WWyW3pNakVkyGGFzVVhj4Yr52jSmdTyeBHm: 'Gake (SMsol5/50%insidery)',
     '3tc4BVAdzjr1JpeZu6NAjLHyp4kK3iic7TexMBYGJ4Xk': 'Devvy',
+    '4WPTQA7BB4iRdrPhgNpJihGcxKh8T43gLjMn5PbEVfQw': 'dk dd #1 oura',
+    '4BdKaxN8G6ka4GYtQQWk4G4dZRUTX2vQH9GcXdBREFUk': 'dk dd #2 jijo',
+    BieeZkdnBAgNYknzo3RH2vku7FcPkFZMZmRJANh2TpW: 'dk dd #3',
+    GitYucwpNcg6Dx1Y15UQ9TQn8LZMX1uuqQNn8rXxEWNC: 'dk dd #4 (700M of sol)',
 };
 
 module.exports = {
