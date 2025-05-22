@@ -4,6 +4,7 @@ const { multiWalletAlert } = require('./services/alertMultiWallet');
 const { pruneCacheStartCron } = require('./services/cronPruneOldTransactions');
 const { insertTransactions } = require('./services/insertTransactions');
 const { updateWalletScoresCron } = require('./services/cronUpdateWalletScores');
+const { runSimulatedTradesCron } = require('./services/cronGenerateDailyPaperTradeSummary');
 const { transactionAlert } = require('./services/alertTransaction');
 const { getTransaction } = require('./transformers/transaction');
 const cache = require('./utils/cache');
@@ -30,6 +31,7 @@ async function runWalletTransactionPipeline(transaction, address) {
 function runCronPipeline() {
     pruneCacheStartCron(cache);
     updateWalletScoresCron();
+    runSimulatedTradesCron(postMessage);
 }
 
 module.exports = {

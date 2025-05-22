@@ -148,13 +148,61 @@ async function updateWalletScores() {
     }
 }
 
-async function getWalletScores(walletAddresses) {
+async function getWalletScores(walletAddresses, timeWindowDays = null) {
+    if (!timeWindowDays) {
+        const { rows } = await pool.query(
+            `SELECT wallet_address, unique_tokens_traded_per_day, profit_per_day, 
+                    rank, avg_hold_duration_seconds 
+             FROM wallet_scores 
+             WHERE wallet_address = ANY($1)`,
+            [walletAddresses]
+        );
+        return rows;
+    }
+
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const timeWindowSeconds = timeWindowDays * 86400;
+
     const { rows } = await pool.query(
-        `SELECT wallet_address, unique_tokens_traded_per_day, profit_per_day, rank, avg_hold_duration_seconds 
-         FROM wallet_scores 
-         WHERE wallet_address = ANY($1)`,
-        [walletAddresses]
+        `WITH windowed_metrics AS (
+            SELECT 
+                wallet_address,
+                COUNT(DISTINCT alt_token_ca) as unique_tokens_traded,
+                SUM(COALESCE(realized_profit_usd, 0) + COALESCE(unrealized_profit_usd, 0)) as total_profit,
+                AVG(NULLIF(hold_duration_seconds, 0)) as avg_hold_duration_seconds
+            FROM wallet_positions 
+            WHERE wallet_address = ANY($1)
+            AND (
+                first_sell_timestamp >= $2 OR 
+                first_buy_timestamp >= $2
+            )
+            GROUP BY wallet_address
+        ),
+        windowed_ranks AS (
+            SELECT 
+                wallet_address,
+                ROW_NUMBER() OVER (
+                    ORDER BY 
+                        CASE 
+                            WHEN total_profit < 0 THEN ABS(total_profit / NULLIF($3, 0))
+                            ELSE total_profit / NULLIF($3, 0)
+                        END DESC
+                ) as rank
+            FROM windowed_metrics
+        )
+        SELECT 
+            w.wallet_address,
+            COALESCE(m.unique_tokens_traded, 0) / NULLIF($3, 0) as unique_tokens_traded_per_day,
+            COALESCE(m.total_profit, 0) / NULLIF($3, 0) as profit_per_day,
+            COALESCE(r.rank, 0) as rank,
+            COALESCE(m.avg_hold_duration_seconds, 0) as avg_hold_duration_seconds
+        FROM wallet_scores w
+        LEFT JOIN windowed_metrics m ON w.wallet_address = m.wallet_address
+        LEFT JOIN windowed_ranks r ON w.wallet_address = r.wallet_address
+        WHERE w.wallet_address = ANY($1)`,
+        [walletAddresses, currentTimestamp - timeWindowSeconds, timeWindowDays]
     );
+
     return rows;
 }
 
