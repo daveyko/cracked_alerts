@@ -30,8 +30,16 @@ npm run migrate
 # ✅ Restart PM2 process to apply new environment variables
 echo "🔄 Restarting Node.js app with updated environment variables..."
 
-# Restart PM2 process
-pm2 restart node-app --update-env
+# ✅ Restart or start PM2 process for node-app
+echo "🔄 Checking if 'node-app' is already running with PM2..."
+if pm2 list | grep -q "node-app"; then
+    echo "🔄 Restarting existing 'node-app' with updated environment variables..."
+    pm2 restart node-app --update-env
+else
+    echo "🚀 'node-app' not found, starting a new process..."
+    pm2 start npm --name "node-app" -- start
+fi
+pm2 save
 
 # Restart Ops Agent to ensure logging
 sudo systemctl restart google-cloud-ops-agent
