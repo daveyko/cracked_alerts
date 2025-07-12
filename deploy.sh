@@ -4,9 +4,6 @@ set -euo pipefail
 
 echo "🚀 Deploying Node.js app on Google Cloud VM..."
 
-# Navigate to the app directory
-cd cracked_alerts
-
 # Pull the latest code
 git pull origin main
 
