@@ -23,5 +23,6 @@ jobs:
                       cd /tmp
                       rm -rf cracked_alerts
                       git clone https://github.com/daveyko/cracked_alerts.git
+                      cd cracked_alerts
                       chmod +x deploy.sh
                       ./deploy.sh
