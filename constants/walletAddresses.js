@@ -44,6 +44,14 @@ const WALLET_ADDRESSES = [
     '4BdKaxN8G6ka4GYtQQWk4G4dZRUTX2vQH9GcXdBREFUk', // jijo: semifreq trade (3-4-25 last 30d 300k profit, 55k of sol)
     'BieeZkdnBAgNYknzo3RH2vku7FcPkFZMZmRJANh2TpW', // anon: semifreq trade (3-4-25 last 30d 2m profit, 50k of sol)
     'GitYucwpNcg6Dx1Y15UQ9TQn8LZMX1uuqQNn8rXxEWNC', // anon: huge sol bag might be exchange wallet (700M of sol)
+    //Justin dd wallet
+    'mW4PZB45isHmnjGkLpJvjKBzVS5NXzTJ8UDyug4gTsM', // DEX
+    '5M8ACGKEXG1ojKDTMH3sMqhTihTgHYMSsZc6W8i7QW3Y', // BONK1
+    '5WRoMdhyQSuRRTAUkxjB8Cu3ss15d2e1Autvi6aGfF3s', // BONK2,
+    '94DFcTUgJ2Mf7r2RLiLdmHgqdgHZnndegS9RW2bxt51Q', //himgajria1
+    'BiozYn55Y7p1Sbi83n93zS3Tm5EHHXMGKC9EQfSvg2So', //himgajria2
+    'DBThRhtNc4kQ9dTWT5sW1RgcmEkiDNAJ5vohS8Ww5Aag', //himgajria3
+    'A1ECE86o3tz6UWmwMWicrqZmwRZ7RCRzmYYa9okNQRBw', //himgajria4
 ];
 
 const WALLET_NAMES = {
@@ -99,6 +107,13 @@ const WALLET_NAMES = {
     '4BdKaxN8G6ka4GYtQQWk4G4dZRUTX2vQH9GcXdBREFUk': 'dk dd #2 jijo',
     BieeZkdnBAgNYknzo3RH2vku7FcPkFZMZmRJANh2TpW: 'dk dd #3',
     GitYucwpNcg6Dx1Y15UQ9TQn8LZMX1uuqQNn8rXxEWNC: 'dk dd #4 (700M of sol)',
+    mW4PZB45isHmnjGkLpJvjKBzVS5NXzTJ8UDyug4gTsM: 'DEX',
+    '5M8ACGKEXG1ojKDTMH3sMqhTihTgHYMSsZc6W8i7QW3Y': 'BONK1',
+    '5WRoMdhyQSuRRTAUkxjB8Cu3ss15d2e1Autvi6aGfF3s': 'BONK2',
+    '94DFcTUgJ2Mf7r2RLiLdmHgqdgHZnndegS9RW2bxt51Q': 'himgajria1',
+    BiozYn55Y7p1Sbi83n93zS3Tm5EHHXMGKC9EQfSvg2So: 'himgajria2',
+    DBThRhtNc4kQ9dTWT5sW1RgcmEkiDNAJ5vohS8Ww5Aag: 'himgajria3',
+    A1ECE86o3tz6UWmwMWicrqZmwRZ7RCRzmYYa9okNQRBw: 'himgajria4',
 };
 
 module.exports = {
