@@ -1,24 +1,28 @@
 name: Deploy to Google Cloud VM
 
 on:
-  push:
-    branches:
-      - main  # Runs on every push to `main`
+    push:
+        branches:
+            - main # Runs on every push to `main`
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v3
 
-      - name: SSH into VM and Run Deployment Script
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_VM_USER }}
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          script: |
-            cd cracked_alerts
-            ./deploy.sh
+            - name: SSH into VM and Run Deployment Script
+              uses: appleboy/ssh-action@v0.1.10
+              with:
+                  host: ${{ secrets.GCP_VM_IP }}
+                  username: ${{ secrets.GCP_VM_USER }}
+                  key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+                  script: |
+                      cd /tmp
+                      rm -rf cracked_alerts
+                      git clone https://github.com/daveyko/cracked_alerts.git
+                      cd cracked_alerts
+                      chmod +x deploy.sh
+                      ./deploy.sh
