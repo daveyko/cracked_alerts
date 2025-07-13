@@ -7,18 +7,20 @@ echo "🚀 Deploying Node.js app on Google Cloud VM..."
 ### -------------------------------------------------------
 ### 1. Install Node.js using `n` with pinned version
 ### -------------------------------------------------------
+# Desired Node.js version
 NODE_VERSION="20.11.1"
 
+# Install Node.js via `n` version manager
 if ! command -v node &> /dev/null || [[ "$(node -v)" != v${NODE_VERSION}* ]]; then
-  echo "📦 Installing Node.js v$NODE_VERSION with n..."
-
+  echo "📦 Installing Node.js v$NODE_VERSION using n..."
   if ! command -v n &> /dev/null; then
     sudo apt update
-    sudo apt install -y nodejs npm
+    # Install a minimal version just to get npm temporarily
+    sudo apt install -y curl build-essential nodejs
+    # Install n globally using temporary npm
     sudo npm install -g n
-    sudo apt purge -y nodejs npm
   fi
-
+  # Step 2: Use n to install desired version
   sudo n $NODE_VERSION
 fi
 
