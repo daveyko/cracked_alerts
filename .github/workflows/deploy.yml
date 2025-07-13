@@ -20,6 +20,10 @@ jobs:
                   username: ${{ secrets.GCP_VM_USER }}
                   key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
                   script: |
+                      # Ensure git exists before cloning (in case VM is bare)
+                      if ! command -v git &> /dev/null; then
+                        sudo apt update && sudo apt install -y git
+                      fi
                       cd /tmp
                       rm -rf cracked_alerts
                       git clone https://github.com/daveyko/cracked_alerts.git
