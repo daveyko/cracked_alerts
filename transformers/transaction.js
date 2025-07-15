@@ -102,6 +102,8 @@ function getTokenMetadata(token) {
         return {
             fiveMinTxn: token.info?.['5mtxn'],
             fiveMinVol: token.info?.['5mvol'],
+            dailyTxns: token.info?.['24htxn'],
+            dailyVol: token.info?.['24hvol'],
             marketCap: token.info?.marketcap,
             pairCreatedAt: token.info?.pairCreatedAt,
             price: token.info?.price || 0,

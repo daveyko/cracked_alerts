@@ -4,7 +4,8 @@ const { multiWalletAlert } = require('./services/alertMultiWallet');
 const { pruneCacheStartCron } = require('./services/cronPruneOldTransactions');
 const { insertTransactions } = require('./services/insertTransactions');
 const { updateWalletScoresCron } = require('./services/cronUpdateWalletScores');
-const { transactionAlert } = require('./services/alertTransaction');
+const { runSimulatedTradesCron } = require('./services/cronGenerateDailyPaperTradeSummary');
+const { alertSizeTransaction } = require('./services/alertSizeTransaction');
 const { getTransaction } = require('./transformers/transaction');
 const cache = require('./utils/cache');
 
@@ -18,9 +19,9 @@ async function runWalletTransactionPipeline(transaction, address) {
         );
         await Promise.all([
             multiWalletAlert(parsedTransaction, cache, postMessage),
+            alertSizeTransaction(parsedTransaction, postMessage),
             insertTransactions([parsedTransaction]),
         ]);
-        await transactionAlert(parsedTransaction, postMessage);
     } else {
         console.log('Not a swap transaction');
     }
@@ -30,6 +31,7 @@ async function runWalletTransactionPipeline(transaction, address) {
 function runCronPipeline() {
     pruneCacheStartCron(cache);
     updateWalletScoresCron();
+    runSimulatedTradesCron(postMessage);
 }
 
 module.exports = {

@@ -52,6 +52,14 @@ const WALLET_ADDRESSES = [
     'BiozYn55Y7p1Sbi83n93zS3Tm5EHHXMGKC9EQfSvg2So', //himgajria2
     'DBThRhtNc4kQ9dTWT5sW1RgcmEkiDNAJ5vohS8Ww5Aag', //himgajria3
     'A1ECE86o3tz6UWmwMWicrqZmwRZ7RCRzmYYa9okNQRBw', //himgajria4
+    //Launch Whales
+    '2QcJDFbfWCz1wjhsAT3PxL9PtKDdxzCZMyJRC5shzvQL', //
+    'BqMsLeiSBvNJUBtmZT8NFxQ41jjYpJSA63vxtorc4D17',
+    'Hx19HmxpMW9wVySLstTGW9DJkMqSLwdkfpbhBankMyNH',
+    //Useless Whales
+    'FFtSpFy3WL5vFNu64RxVXsjNiBi1zJPSgXm8bbgZS5t8',
+    'EfxaH82BFWWj4xiY8hWsD5tTMnh6NAcsF19V6Xd6W9Gv',
+    '25CxFB3n1DwwnhQiaQesHH4RDrP1fpUdaPwtWKSkpmoK',
 ];
 
 const WALLET_NAMES = {
@@ -114,6 +122,14 @@ const WALLET_NAMES = {
     BiozYn55Y7p1Sbi83n93zS3Tm5EHHXMGKC9EQfSvg2So: 'himgajria2',
     DBThRhtNc4kQ9dTWT5sW1RgcmEkiDNAJ5vohS8Ww5Aag: 'himgajria3',
     A1ECE86o3tz6UWmwMWicrqZmwRZ7RCRzmYYa9okNQRBw: 'himgajria4',
+    //Launch Whales
+    '2QcJDFbfWCz1wjhsAT3PxL9PtKDdxzCZMyJRC5shzvQL': 'launchwhale1', //
+    BqMsLeiSBvNJUBtmZT8NFxQ41jjYpJSA63vxtorc4D17: 'launchwhale2',
+    Hx19HmxpMW9wVySLstTGW9DJkMqSLwdkfpbhBankMyNH: 'launchwhale3',
+    //Useless Whales
+    FFtSpFy3WL5vFNu64RxVXsjNiBi1zJPSgXm8bbgZS5t8: 'uselesswhale1',
+    EfxaH82BFWWj4xiY8hWsD5tTMnh6NAcsF19V6Xd6W9Gv: 'uselesswhale2',
+    '25CxFB3n1DwwnhQiaQesHH4RDrP1fpUdaPwtWKSkpmoK': 'uselesswhale3',
 };
 
 module.exports = {

@@ -74,7 +74,10 @@ async function transactionAggByWalletToken(transactions, getWalletScores) {
     const walletScores = {};
     const tokenCounts = {};
 
-    const scores = await getWalletScores(transactions.map((t) => t.walletAddress));
+    const scores = await getWalletScores(
+        transactions.map((t) => t.walletAddress),
+        14
+    );
     scores.forEach((r) => {
         walletScores[r.wallet_address] = {
             profitPerDay: r.profit_per_day,
