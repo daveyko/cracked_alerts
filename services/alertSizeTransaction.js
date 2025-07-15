@@ -4,18 +4,22 @@ const {
 } = require('../transformers/transactionAggByWalletToken');
 const { getWalletScores } = require('../db/walletScores');
 const { createSimulatedTrade } = require('../db/tradeSimulator');
-const { transactionOverThreshold } = require('../utils/transactionThreshold');
-const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 10000;
-const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 50;
+const {
+    transactionOverPriceThreshold,
+    transactionOverVolumeThreshold,
+} = require('../utils/transactionThreshold');
+const MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE = 2400;
+const MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE = 15;
 
-async function transactionAlert(transaction, postMessage) {
+async function alertSizeTransaction(transaction, postMessage) {
     const { walletName } = transaction;
     if (
-        transactionOverThreshold(
+        transactionOverPriceThreshold(
             transaction,
             MINIMUM_SOL_CHANGE_MULTI_WALLET_TRACKING_WHALE,
             MINIMUM_USDC_CHANGE_MULTI_WALLET_TRACKING_WHALE
-        )
+        ) &&
+        transactionOverVolumeThreshold()
     ) {
         await createSimulatedTrade(transaction);
         await sendMessage(
@@ -40,5 +44,5 @@ async function sendMessage(title, chatId, transaction, postMessage) {
 }
 
 module.exports = {
-    transactionAlert,
+    alertSizeTransaction,
 };
